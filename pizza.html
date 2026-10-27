@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Задача: Калькулятор доставки пиццы</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+        
+        .accordion {
+            padding: 20px;
+        }
+        
+        .accordion-item {
+            margin-bottom: 10px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .accordion-item:hover {
+            border-color: #667eea;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.2);
+        }
+        
+        .accordion-header {
+            background: #f8f9fa;
+            padding: 20px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 1.2em;
+            font-weight: 600;
+            color: #333;
+            transition: background 0.3s ease;
+        }
+        
+        .accordion-header:hover {
+            background: #e9ecef;
+        }
+        
+        .accordion-header.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .accordion-icon {
+            font-size: 1.5em;
+            transition: transform 0.3s ease;
+        }
+        
+        .accordion-header.active .accordion-icon {
+            transform: rotate(45deg);
+        }
+        
+        .accordion-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s ease, padding 0.4s ease;
+            background: white;
+        }
+        
+        .accordion-content.active {
+            max-height: 2000px;
+            padding: 20px;
+        }
+        
+        .accordion-content h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+        }
+        
+        .accordion-content p {
+            line-height: 1.6;
+            margin-bottom: 15px;
+            color: #555;
+        }
+        
+        .accordion-content ul, .accordion-content ol {
+            margin-left: 25px;
+            margin-bottom: 15px;
+        }
+        
+        .accordion-content li {
+            line-height: 1.8;
+            color: #555;
+        }
+        
+        code {
+            background: #f4f4f4;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            color: #e83e8c;
+        }
+        
+        pre {
+            background: #2d2d2d;
+            color: #f8f8f2;
+            padding: 15px;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 15px 0;
+            font-family: 'Courier New', monospace;
+            line-height: 1.5;
+        }
+        
+        .price-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+        
+        .price-table th, .price-table td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: center;
+        }
+        
+        .price-table th {
+            background: #667eea;
+            color: white;
+        }
+        
+        .price-table tr:nth-child(even) {
+            background: #f8f9fa;
+        }
+        
+        .highlight {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 5px;
+        }
+        
+        .success {
+            background: #d4edda;
+            border-left: 4px solid #28a745;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 5px;
+        }
+        
+        .warning {
+            background: #f8d7da;
+            border-left: 4px solid #dc3545;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 5px;
+        }
+        
+        .emoji {
+            font-size: 1.5em;
+            margin-right: 10px;
+        }
+        
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 1.8em;
+            }
+            
+            .accordion-header {
+                font-size: 1em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🍕 Калькулятор доставки пиццы</h1>
+            <p>Задача на декомпозицию и работу со сложной бизнес-логикой</p>
+        </div>
+        
+        <div class="accordion">
+            <div class="accordion-item">
+                <div class="accordion-header">
+                    <span><span class="emoji">📖</span>Описание задачи</span>
+                    <span class="accordion-icon">+</span>
+                </div>
+                <div class="accordion-content">
+                    <h3>Легенда</h3>
+                    <p>Вы разрабатываете систему расчета стоимости доставки для сети пиццерий "Пицца-Экспресс". Система должна учитывать множество факторов: тип пиццы, размер, количество, расстояние, время заказа, погоду, промокоды, лояльность клиента и многое другое.</p>
+                    
+                    <div class="highlight">
+                        <strong>Главная цель:</strong> Написать функцию, которая рассчитывает итоговую стоимость заказа с учетом ВСЕХ условий доставки.
+                    </div>
+                    
+                    <h3>Почему эта задача сложная?</h3>
+                    <ul>
+                        <li>Множество условий, которые нужно учесть в правильном порядке</li>
+                        <li>Разные типы наценок и скидок применяются к разным частям стоимости</li>
+                        <li>Необходима валидация входных данных</li>
+                        <li>Код должен быть читаемым и поддерживаемым</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="accordion-item">
+                <div class="accordion-header">
+                    <span><span class="emoji">📥</span>Входные данные</span>
+                    <span class="accordion-icon">+</span>
+                </div>
+                <div class="accordion-content">
+                    <h3>Сигнатура функции</h3>
+                    <pre>def calculate_pizza_delivery(
+    pizza_type: str,           # "margherita", "pepperoni", "hawaiian", "vegetarian"
+    size: str,                 # "small", "medium", "large"
+    quantity: int,             # количество пицц
+    distance_km: float,        # расстояние доставки в км
+    delivery_time: str,        # время заказа в формате "HH:MM"
+    is_weekend: bool,          # выходной день?
+    has_promo_code: bool,      # есть промокод?
+    promo_code: str,           # сам промокод (или пустая строка)
+    customer_rating: float,    # рейтинг клиента (1.0 - 5.0)
+    is_loyalty_member: bool,   # участник программы лояльности?
+    weather: str,              # "sunny", "rainy", "snowy"
+    is_holiday: bool           # праздничный день?
+) -> float:</pre>
+                    
+                    <div class="warning">
+                        <strong>Важно:</strong> Функция должна вернуть итоговую стоимость заказа в рублях. Если доставка невозможна (расстояние > 15 км), вернуть <code>-1</code>.
+                    </div>
+                </div>
+            </div>
+            
+            <div class="accordion-item">
+                <div class="accordion-header">
+                    <span><span class="emoji">💰</span>Базовые цены пицц</span>
+                    <span class="accordion-icon">+</span>
+                </div>
+                <div class="accordion-content">
+                    <table class="price-table">
+                        <thead>
+                            <tr>
+                                <th>Тип пиццы</th>
+                                <th>Small</th>
+                                <th>Medium</th>
+                                <th>Large</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Margherita</td>
+                                <td>300₽</td>
+                                <td>450₽</td>
+                                <td>600₽</td>
+                            </tr>
+                            <tr>
+                                <td>Pepperoni</td>
+                                <td>350₽</td>
+                                <td>500₽</td>
+                                <td>700₽</td>
+                            </tr>
+                            <tr>
+                                <td>Hawaiian</td>
+                                <td>400₽</td>
+                                <td>550₽</td>
+                                <td>750₽</td>
+                            </tr>
+                            <tr>
+                                <td>Vegetarian</td>
+                                <td>320₽</td>
+                                <td>470₽</td>
+                                <td>650₽</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <div class="accordion-item">
+                <div class="accordion-header">
+                    <span><span class="emoji">🎯</span>Условия расчета (10 правил)</span>
+                    <span class="accordion-icon">+</span>
+                </div>
+                <div class="accordion-content">
+                    <h3>2. Наценка за расстояние</h3>
+                    <ul>
+                        <li>0-3 км: бесплатно</li>
+                        <li>3-5 км: +50₽</li>
+                        <li>5-10 км: +100₽</li>
+                        <li>10-15 км: +200₽</li>
+                        <li>Более 15 км: +300₽ + отказ в доставке (вернуть -1)</li>
+                    </ul>
+                    
+                    <h3>3. Ночная наценка</h3>
+                    <p>Если время заказа с 23:00 до 06:00: <strong>+30% к стоимости доставки</strong> (не к пиццам!)</p>
+                    
+                    <h3>4. Наценка за выходные</h3>
+                    <p>Если <code>is_weekend=True</code>: <strong>+15% к стоимости пицц</strong></p>
+                    
+                    <h3>5. Промокоды (применяются ПОСЛЕ всех наценок)</h3>
+                    <ul>
+                        <li><code>"WELCOME10"</code>: скидка 10% от общей суммы</li>
+                        <li><code>"VIP20"</code>: скидка 20%, но только если <code>customer_rating >= 4.5</code></li>
+                        <li><code>"COMBO15"</code>: скидка 15%, но только если заказано 3+ пиццы</li>
+                        <li><code>"HAPPY"</code>: скидка 25%, но только если <code>is_holiday=True</code></li>
+                        <li>Если промокод невалиден или условия не выполнены: без скидки</li>
+                    </ul>
+                    
+                    <h3>6. Скидка за лояльность</h3>
+                    <p>Если <code>is_loyalty_member=True</code>: дополнительная скидка 5% (применяется ПОСЛЕ промокода)</p>
+                    
+                    <h3>7. Наценка за плохую погоду</h3>
+                    <ul>
+                        <li>Если <code>weather="rainy"</code>: +80₽ к доставке</li>
+                        <li>Если <code>weather="snowy"</code>: +150₽ к доставке</li>
+                    </ul>
+                    
+                    <h3>8. Праздничная наценка</h3>
+                    <p>Если <code>is_holiday=True</code>: <strong>+20% к стоимости пицц</strong></p>
+                    
+                    <h3>9. Скидка за высокий рейтинг клиента</h3>
+                    <ul>
+                        <li>Если <code>customer_rating >= 4.8</code>: скидка 5% от стоимости пицц</li>
+                        <li>Если <code>customer_rating >= 4.5</code>: скидка 3% от стоимости пицц</li>
+                    </ul>
+                    
+                    <h3>10. Округление</h3>
+                    <p>Итоговая сумма округляется до целых рублей (обычное математическое округление)</p>
+                    
+                    <div class="highlight">
+                        <strong>Порядок применения:</strong> Базовая цена → Наценка за количество → Наценка за выходные/праздник → Скидка за рейтинг → Стоимость доставки → Наценка за погоду/ночь → Промокод → Скидка лояльности → Округление
+                    </div>
+                </div>
+            </div>
+            
+            <div class="accordion-item">
+                <div class="accordion-header">
+                    <span><span class="emoji">🧪</span>Примеры для проверки</span>
+                    <span class="accordion-icon">+</span>
+                </div>
+                <div class="accordion-content">
+                    <h3>Пример 1: Простой заказ</h3>
+                    <pre>result = calculate_pizza_delivery(
+    pizza_type="margherita",
+    size="medium",
+    quantity=2,
+    distance_km=2.5,
+    delivery_time="14:30",
+    is_weekend=False,
+    has_promo_code=False,
+    promo_code="",
+    customer_rating=4.0,
+    is_loyalty_member=False,
+    weather="sunny",
+    is_holiday=False
+)
+# Ожидаемый результат: 900 (450 * 2)</pre>
+                    
+                    <h3>Пример 2: Сложный заказ со всеми условиями</h3>
+                    <pre>result = calculate_pizza_delivery(
+    pizza_type="pepperoni",
+    size="large",
+    quantity=4,
+    distance_km=7,
+    delivery_time="23:30",
+    is_weekend=True,
+    has_promo_code=True,
+    promo_code="VIP20",
+    customer_rating=4.7,
+    is_loyalty_member=True,
+    weather="rainy",
+    is_holiday=False
+)
+# Пошаговый расчет:
+# 1. Базовая цена: 700₽
+# 3. Наценка за выходные: 735 * 1.15 = 845.25₽
+# 4. Скидка за рейтинг (4.7 >= 4.5): 845.25 * 0.97 = 819.89₽
+# 5. Стоимость пицц за 4 штуки: 819.89 * 4 = 3279.56₽
+# 6. Доставка (7 км): 100₽
+# 7. Наценка за дождь: 100 + 80 = 180₽
+# 8. Ночная наценка (23:30): 180 * 1.3 = 234₽
+# 9. Промокод VIP20 (рейтинг 4.7 >= 4.5): (3279.56 + 234) * 0.8 = 2810.85₽
+# 10. Скидка лояльности: 2810.85 * 0.95 = 2670.31₽
+# 11. Округление: 2670₽</pre>
+                    
+                    <h3>Пример 3: Отказ в доставке</h3>
+                    <pre>result = calculate_pizza_delivery(
+    pizza_type="hawaiian",
+    size="large",
+    quantity=1,
+    distance_km=20,  # > 15 км
+    delivery_time="12:00",
+    is_weekend=False,
+    has_promo_code=False,
+    promo_code="",
+    customer_rating=4.0,
+    is_loyalty_member=False,
+    weather="sunny",
+    is_holiday=False
+)
+# Ожидаемый результат: -1</pre>
+                </div>
+            </div>
+            
+            <div class="accordion-item">
+                <div class="accordion-header">
+                    <span><span class="emoji">🏗️</span>Как правильно декомпозировать</span>
+                    <span class="accordion-icon">+</span>
+                </div>
+                <div class="accordion-content">
+                    <h3>Плохой подход (монолит)</h3>
+                    <div class="warning">
+                        <strong>НЕ ДЕЛАЙТЕ ТАК:</strong> Весь код в одной функции с 15+ вложенными if/else. Это невозможно отлаживать и поддерживать.
+                    </div>
+                    
+                    <h3>Правильный подход (декомпозиция)</h3>
+                    <pre>def get_base_price(pizza_type: str, size: str) -> float:
+    """Возвращает базовую цену пиццы"""
+    pass
+
+def calculate_quantity_surcharge(quantity: int, base_price: float) -> float:
+    """Считает наценку за количество"""
+    pass
+
+def calculate_delivery_fee(distance_km: float, delivery_time: str, weather: str) -> float:
+    """Считает стоимость доставки"""
+    pass
+
+def apply_promo_code(total: float, promo_code: str, conditions: dict) -> float:
+    """Применяет промокод"""
+    pass
+
+def apply_loyalty_discount(total: float, is_loyalty_member: bool) -> float:
+    """Применяет скидку лояльности"""
+    pass
+
+def calculate_pizza_delivery(...) -> float:
+    """Главная функция - координирует все расчеты"""
+    base_price = get_base_price(pizza_type, size)
+    pizza_cost = calculate_quantity_surcharge(quantity, base_price)
+    delivery_fee = calculate_delivery_fee(distance_km, delivery_time, weather)
+    # ... и так далее</pre>
+                    
+                    <div class="success">
+                        <strong>Преимущества такого подхода:</strong>
+                        <ul>
+                            <li>Каждую функцию можно протестировать отдельно</li>
+                            <li>Легко изменить одно правило, не трогая остальной код</li>
+                            <li>Код читается как документация</li>
+                            <li>Порядок применения скидок становится очевидным</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="accordion-item">
+                <div class="accordion-header">
+                    <span><span class="emoji">✅</span>Чек-лист для преподавателя</span>
+                    <span class="accordion-icon">+</span>
+                </div>
+                <div class="accordion-content">
+                    <h3>Оценка "Неуд" (2)</h3>
+                    <div class="warning">
+                        <ul>
+                            <li>Весь код в одной функции</li>
+                            <li>50+ строк вложенных условий</li>
+                            <li>Невозможно понять, где считается доставка, а где пицца</li>
+                        </ul>
+                    </div>
+                    
+                    <h3>Оценка "Удовл" (3)</h3>
+                    <div class="highlight">
+                        <ul>
+                            <li>Есть функции, но они слишком большие</li>
+                            <li>Логика разбросана хаотично</li>
+                            <li>Используются глобальные переменные</li>
+                        </ul>
+                    </div>
+                    
+                    <h3>Оценка "Хорошо" (4)</h3>
+                    <div class="success">
+                        <ul>
+                            <li>Код разбит на логические блоки</li>
+                            <li>Функции выполняют одну задачу</li>
+                            <li>Но порядок применения скидок неочевиден</li>
+                        </ul>
+                    </div>
+                    
+                    <h3>Оценка "Отлично" (5)</h3>
+                    <div class="success">
+                        <ul>
+                            <li>Каждая функция < 15 строк</li>
+                            <li>Четкая иерархия вызовов</li>
+                            <li>Легко добавить новое правило</li>
+                            <li>Код покрыт комментариями, объясняющими бизнес-логику</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Аккордеон
+        const headers = document.querySelectorAll('.accordion-header');
+        
+        headers.forEach(header => {
+            header.addEventListener('click', () => {
+                const content = header.nextElementSibling;
+                const isActive = header.classList.contains('active');
+                
+                // Закрываем все остальные
+                headers.forEach(h => {
+                    h.classList.remove('active');
+                    h.nextElementSibling.classList.remove('active');
+                    h.querySelector('.accordion-icon').textContent = '+';
+                });
+                
+                // Открываем текущий, если он был закрыт
+                if (!isActive) {
+                    header.classList.add('active');
+                    content.classList.add('active');
+                    header.querySelector('.accordion-icon').textContent = '×';
+                }
+            });
+        });
+        
+        // Открываем первый раздел по умолчанию
+        headers[0].click();
+    </script>
+</body>
+</html>
