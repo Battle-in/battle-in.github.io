@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Практическая работа: GROUP BY в SQLite</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        }
+        
+        h1 {
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+        }
+        
+        h2 {
+            color: #764ba2;
+            margin-top: 30px;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+        }
+        
+        h3 {
+            color: #555;
+            margin-top: 20px;
+            margin-bottom: 10px;
+        }
+        
+        .intro {
+            background: #f8f9fa;
+            padding: 20px;
+            border-left: 4px solid #667eea;
+            margin-bottom: 30px;
+            border-radius: 5px;
+        }
+        
+        .task {
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+        
+        .task-title {
+            font-weight: bold;
+            color: #856404;
+            margin-bottom: 10px;
+        }
+        
+        pre {
+            background: #2d2d2d;
+            color: #f8f8f2;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            margin: 15px 0;
+        }
+        
+        code {
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 14px;
+        }
+        
+        .inline-code {
+            background: #e9ecef;
+            padding: 2px 6px;
+            border-radius: 3px;
+            color: #d63384;
+            font-family: 'Consolas', 'Monaco', monospace;
+        }
+        
+        .result {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 5px;
+        }
+        
+        .result-title {
+            font-weight: bold;
+            color: #155724;
+            margin-bottom: 10px;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+            background: white;
+        }
+        
+        th, td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: left;
+        }
+        
+        th {
+            background: #667eea;
+            color: white;
+            font-weight: bold;
+        }
+        
+        tr:nth-child(even) {
+            background: #f8f9fa;
+        }
+        
+        .hint {
+            background: #e7f3ff;
+            border-left: 4px solid #2196F3;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 5px;
+        }
+        
+        .solution {
+            background: #f0f0f0;
+            border: 1px solid #ccc;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 5px;
+            display: none;
+        }
+        
+        .solution.show {
+            display: block;
+        }
+        
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            margin: 5px 0;
+            transition: background 0.3s;
+        }
+        
+        button:hover {
+            background: #764ba2;
+        }
+        
+        .syntax-box {
+            background: #f8f9fa;
+            border: 2px solid #667eea;
+            padding: 20px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        
+        ul, ol {
+            margin-left: 30px;
+            margin-bottom: 15px;
+        }
+        
+        li {
+            margin-bottom: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📊 Практическая работа: GROUP BY в SQLite</h1>
+        
+        <div class="intro">
+            <h3>Цель работы:</h3>
+            <p>Научиться использовать оператор GROUP BY для группировки данных и применения агрегатных функций в SQLite.</p>
+            
+            <h3>Что вы узнаете:</h3>
+            <ul>
+                <li>Создание таблиц с данными</li>
+                <li>Группировка данных по различным полям</li>
+                <li>Использование агрегатных функций: COUNT, SUM, AVG, MIN, MAX</li>
+                <li>Применение HAVING для фильтрации групп</li>
+            </ul>
+        </div>
+
+        <h2>📚 Теоретическая справка</h2>
+        
+        <div class="syntax-box">
+            <h3>Синтаксис GROUP BY:</h3>
+            <pre><code>SELECT столбец1, АГРЕГАТНАЯ_ФУНКЦИЯ(столбец2)
+FROM таблица
+GROUP BY столбец1
+HAVING условие;</code></pre>
+            
+            <h3>Агрегатные функции:</h3>
+            <ul>
+                <li><span class="inline-code">COUNT()</span> - подсчитывает количество записей</li>
+                <li><span class="inline-code">SUM()</span> - вычисляет сумму значений</li>
+                <li><span class="inline-code">AVG()</span> - вычисляет среднее значение</li>
+                <li><span class="inline-code">MIN()</span> - находит минимальное значение</li>
+                <li><span class="inline-code">MAX()</span> - находит максимальное значение</li>
+            </ul>
+        </div>
+
+        <h2>🚀 Задание 1: Создание таблицы</h2>
+        
+        <div class="task">
+            <div class="task-title">Задание:</div>
+            <p>Создайте таблицу <span class="inline-code">employees</span> (сотрудники) со следующими полями:</p>
+            <ul>
+                <li>id - целое число, первичный ключ</li>
+                <li>name - текст (имя сотрудника)</li>
+                <li>department - текст (отдел)</li>
+                <li>position - текст (должность)</li>
+                <li>salary - целое число (зарплата)</li>
+                <li>hire_date - текст (дата приема на работу)</li>
+            </ul>
+        </div>
+
+        <h3>Решение:</h3>
+        <pre><code>CREATE TABLE employees (
+    id INTEGER PRIMARY KEY,
+    name TEXT NOT NULL,
+    department TEXT NOT NULL,
+    position TEXT NOT NULL,
+    salary INTEGER NOT NULL,
+    hire_date TEXT NOT NULL
+);</code></pre>
+
+        <button onclick="toggleSolution('sol1')">Показать решение</button>
+        <div id="sol1" class="solution">
+            <p>Таблица создана успешно! Теперь переходим к заполнению данными.</p>
+        </div>
+
+        <h2>📝 Задание 2: Заполнение таблицы данными</h2>
+        
+        <div class="task">
+            <div class="task-title">Задание:</div>
+            <p>Добавьте в таблицу не менее 15 записей с данными о сотрудниках из разных отделов (IT, HR, Sales, Marketing, Finance).</p>
+        </div>
+
+        <h3>Решение:</h3>
+        <pre><code>INSERT INTO employees (name, department, position, salary, hire_date) VALUES
+('Иванов Иван', 'IT', 'Разработчик', 85000, '2020-03-15'),
+('Петров Петр', 'IT', 'Разработчик', 90000, '2019-06-20'),
+('Сидорова Анна', 'IT', 'Тестировщик', 70000, '2021-01-10'),
+('Козлов Дмитрий', 'HR', 'Рекрутер', 60000, '2020-09-01'),
+('Новикова Мария', 'HR', 'HR-менеджер', 75000, '2018-11-15'),
+('Морозов Алексей', 'Sales', 'Менеджер по продажам', 65000, '2021-04-20'),
+('Волкова Елена', 'Sales', 'Менеджер по продажам', 70000, '2020-07-10'),
+('Соколов Андрей', 'Sales', 'Старший менеджер', 85000, '2019-02-28'),
+('Лебедева Ольга', 'Marketing', 'Маркетолог', 72000, '2021-05-15'),
+('Попов Сергей', 'Marketing', 'SMM-специалист', 68000, '2020-12-01'),
+('Кузнецова Татьяна', 'Finance', 'Бухгалтер', 70000, '2019-08-20'),
+('Смирнов Николай', 'Finance', 'Финансовый аналитик', 80000, '2020-04-10'),
+('Васильева Ирина', 'IT', 'DevOps-инженер', 95000, '2018-10-05'),
+('Павлов Михаил', 'Marketing', 'Дизайнер', 75000, '2021-03-25'),
+('Семенова Екатерина', 'HR', 'Специалист по обучению', 65000, '2021-06-15');</code></pre>
+
+        <button onclick="toggleSolution('sol2')">Показать решение</button>
+        <div id="sol2" class="solution">
+            <p>Данные успешно добавлены в таблицу!</p>
+            <table>
+                <tr>
+                    <th>id</th>
+                    <th>name</th>
+                    <th>department</th>
+                    <th>position</th>
+                    <th>salary</th>
+                    <th>hire_date</th>
+                </tr>
+                <tr><td>1</td><td>Иванов Иван</td><td>IT</td><td>Разработчик</td><td>85000</td><td>2020-03-15</td></tr>
+                <tr><td>2</td><td>Петров Петр</td><td>IT</td><td>Разработчик</td><td>90000</td><td>2019-06-20</td></tr>
+                <tr><td>3</td><td>Сидорова Анна</td><td>IT</td><td>Тестировщик</td><td>70000</td><td>2021-01-10</td></tr>
+                <tr><td>4</td><td>Козлов Дмитрий</td><td>HR</td><td>Рекрутер</td><td>60000</td><td>2020-09-01</td></tr>
+                <tr><td>5</td><td>Новикова Мария</td><td>HR</td><td>HR-менеджер</td><td>75000</td><td>2018-11-15</td></tr>
+                <tr><td>6</td><td>Морозов Алексей</td><td>Sales</td><td>Менеджер по продажам</td><td>65000</td><td>2021-04-20</td></tr>
+                <tr><td>7</td><td>Волкова Елена</td><td>Sales</td><td>Менеджер по продажам</td><td>70000</td><td>2020-07-10</td></tr>
+                <tr><td>8</td><td>Соколов Андрей</td><td>Sales</td><td>Старший менеджер</td><td>85000</td><td>2019-02-28</td></tr>
+                <tr><td>9</td><td>Лебедева Ольга</td><td>Marketing</td><td>Маркетолог</td><td>72000</td><td>2021-05-15</td></tr>
+                <tr><td>10</td><td>Попов Сергей</td><td>Marketing</td><td>SMM-специалист</td><td>68000</td><td>2020-12-01</td></tr>
+                <tr><td>11</td><td>Кузнецова Татьяна</td><td>Finance</td><td>Бухгалтер</td><td>70000</td><td>2019-08-20</td></tr>
+                <tr><td>12</td><td>Смирнов Николай</td><td>Finance</td><td>Финансовый аналитик</td><td>80000</td><td>2020-04-10</td></tr>
+                <tr><td>13</td><td>Васильева Ирина</td><td>IT</td><td>DevOps-инженер</td><td>95000</td><td>2018-10-05</td></tr>
+                <tr><td>14</td><td>Павлов Михаил</td><td>Marketing</td><td>Дизайнер</td><td>75000</td><td>2021-03-25</td></tr>
+                <tr><td>15</td><td>Семенова Екатерина</td><td>HR</td><td>Специалист по обучению</td><td>65000</td><td>2021-06-15</td></tr>
+            </table>
+        </div>
+
+        <h2>🎯 Задание 3: Подсчет сотрудников по отделам</h2>
+        
+        <div class="task">
+            <div class="task-title">Задание:</div>
+            <p>Выведите количество сотрудников в каждом отделе.</p>
+        </div>
+
+        <div class="hint">
+            💡 <strong>Подсказка:</strong> Используйте COUNT() и GROUP BY department
+        </div>
+
+        <button onclick="toggleSolution('sol3')">Показать решение</button>
+        <div id="sol3" class="solution">
+            <pre><code>SELECT department, COUNT(*) as employee_count
+FROM employees
+GROUP BY department;</code></pre>
+            
+            <div class="result">
+                <div class="result-title">Результат:</div>
+                <table>
+                    <tr>
+                        <th>department</th>
+                        <th>employee_count</th>
+                    </tr>
+                    <tr><td>Finance</td><td>2</td></tr>
+                    <tr><td>HR</td><td>3</td></tr>
+                    <tr><td>IT</td><td>4</td></tr>
+                    <tr><td>Marketing</td><td>3</td></tr>
+                    <tr><td>Sales</td><td>3</td></tr>
+                </table>
+            </div>
+        </div>
+
+        <h2>💰 Задание 4: Средняя зарплата по отделам</h2>
+        
+        <div class="task">
+            <div class="task-title">Задание:</div>
+            <p>Рассчитайте среднюю зарплату в каждом отделе. Отсортируйте результат по убыванию средней зарплаты.</p>
+        </div>
+
+        <div class="hint">
+            💡 <strong>Подсказка:</strong> Используйте AVG() и ORDER BY
+        </div>
+
+        <button onclick="toggleSolution('sol4')">Показать решение</button>
+        <div id="sol4" class="solution">
+            <pre><code>SELECT department, 
+       ROUND(AVG(salary), 2) as avg_salary
+FROM employees
+GROUP BY department
+ORDER BY avg_salary DESC;</code></pre>
+            
+            <div class="result">
+                <div class="result-title">Результат:</div>
+                <table>
+                    <tr>
+                        <th>department</th>
+                        <th>avg_salary</th>
+                    </tr>
+                    <tr><td>IT</td><td>85000.00</td></tr>
+                    <tr><td>Finance</td><td>75000.00</td></tr>
+                    <tr><td>Marketing</td><td>71666.67</td></tr>
+                    <tr><td>Sales</td><td>73333.33</td></tr>
+                    <tr><td>HR</td><td>66666.67</td></tr>
+                </table>
+            </div>
+        </div>
+
+        <h2>📊 Задание 5: Минимальная и максимальная зарплата</h2>
+        
+        <div class="task">
+            <div class="task-title">Задание:</div>
+            <p>Для каждого отдела выведите минимальную, максимальную зарплату и общую сумму всех зарплат.</p>
+        </div>
+
+        <button onclick="toggleSolution('sol5')">Показать решение</button>
+        <div id="sol5" class="solution">
+            <pre><code>SELECT department,
+       MIN(salary) as min_salary,
+       MAX(salary) as max_salary,
+       SUM(salary) as total_salary
+FROM employees
+GROUP BY department;</code></pre>
+            
+            <div class="result">
+                <div class="result-title">Результат:</div>
+                <table>
+                    <tr>
+                        <th>department</th>
+                        <th>min_salary</th>
+                        <th>max_salary</th>
+                        <th>total_salary</th>
+                    </tr>
+                    <tr><td>Finance</td><td>70000</td><td>80000</td><td>150000</td></tr>
+                    <tr><td>HR</td><td>60000</td><td>75000</td><td>200000</td></tr>
+                    <tr><td>IT</td><td>70000</td><td>95000</td><td>340000</td></tr>
+                    <tr><td>Marketing</td><td>68000</td><td>75000</td><td>215000</td></tr>
+                    <tr><td>Sales</td><td>65000</td><td>85000</td><td>220000</td></tr>
+                </table>
+            </div>
+        </div>
+
+        <h2>🔍 Задание 6: Использование HAVING</h2>
+        
+        <div class="task">
+            <div class="task-title">Задание:</div>
+            <p>Выведите только те отделы, где работает более 2 сотрудников.</p>
+        </div>
+
+        <div class="hint">
+            💡 <strong>Подсказка:</strong> Используйте HAVING для фильтрации групп после GROUP BY
+        </div>
+
+        <button onclick="toggleSolution('sol6')">Показать решение</button>
+        <div id="sol6" class="solution">
+            <pre><code>SELECT department, COUNT(*) as employee_count
+FROM employees
+GROUP BY department
+HAVING COUNT(*) > 2;</code></pre>
+            
+            <div class="result">
+                <div class="result-title">Результат:</div>
+                <table>
+                    <tr>
+                        <th>department</th>
+                        <th>employee_count</th>
+                    </tr>
+                    <tr><td>HR</td><td>3</td></tr>
+                    <tr><td>IT</td><td>4</td></tr>
+                    <tr><td>Marketing</td><td>3</td></tr>
+                    <tr><td>Sales</td><td>3</td></tr>
+                </table>
+            </div>
+        </div>
+
+        <h2>💼 Задание 7: Группировка по нескольким полям</h2>
+        
+        <div class="task">
+            <div class="task-title">Задание:</div>
+            <p>Выведите количество сотрудников по каждой должности в каждом отделе.</p>
+        </div>
+
+        <button onclick="toggleSolution('sol7')">Показать решение</button>
+        <div id="sol7" class="solution">
+            <pre><code>SELECT department, position, COUNT(*) as count
+FROM employees
+GROUP BY department, position
+ORDER BY department, count DESC;</code></pre>
+            
+            <div class="result">
+                <div class="result-title">Результат:</div>
+                <table>
+                    <tr>
+                        <th>department</th>
+                        <th>position</th>
+                        <th>count</th>
+                    </tr>
+                    <tr><td>Finance</td><td>Бухгалтер</td><td>1</td></tr>
+                    <tr><td>Finance</td><td>Финансовый аналитик</td><td>1</td></tr>
+                    <tr><td>HR</td><td>HR-менеджер</td><td>1</td></tr>
+                    <tr><td>HR</td><td>Рекрутер</td><td>1</td></tr>
+                    <tr><td>HR</td><td>Специалист по обучению</td><td>1</td></tr>
+                    <tr><td>IT</td><td>DevOps-инженер</td><td>1</td></tr>
+                    <tr><td>IT</td><td>Разработчик</td><td>2</td></tr>
+                    <tr><td>IT</td><td>Тестировщик</td><td>1</td></tr>
+                    <tr><td>Marketing</td><td>Дизайнер</td><td>1</td></tr>
+                    <tr><td>Marketing</td><td>Маркетолог</td><td>1</td></tr>
+                    <tr><td>Marketing</td><td>SMM-специалист</td><td>1</td></tr>
+                    <tr><td>Sales</td><td>Менеджер по продажам</td><td>2</td></tr>
+                    <tr><td>Sales</td><td>Старший менеджер</td><td>1</td></tr>
+                </table>
+            </div>
+        </div>
+
+        <h2>📅 Задание 8: Группировка по году</h2>
+        
+        <div class="task">
+            <div class="task-title">Задание:</div>
+            <p>Выведите количество сотрудников, принятых на работу в каждом году.</p>
+        </div>
+
+        <div class="hint">
+            💡 <strong>Подсказка:</strong> Используйте функцию strftime('%Y', hire_date) для извлечения года из даты
+        </div>
+
+        <button onclick="toggleSolution('sol8')">Показать решение</button>
+        <div id="sol8" class="solution">
+            <pre><code>SELECT strftime('%Y', hire_date) as hire_year,
+       COUNT(*) as employee_count
+FROM employees
+GROUP BY strftime('%Y', hire_date)
+ORDER BY hire_year;</code></pre>
+            
+            <div class="result">
+                <div class="result-title">Результат:</div>
+                <table>
+                    <tr>
+                        <th>hire_year</th>
+                        <th>employee_count</th>
+                    </tr>
+                    <tr><td>2018</td><td>2</td></tr>
+                    <tr><td>2019</td><td>3</td></tr>
+                    <tr><td>2020</td><td>5</td></tr>
+                    <tr><td>2021</td><td>5</td></tr>
+                </table>
+            </div>
+        </div>
+
+        <h2>🏆 Задание 9: Отделы с высокой средней зарплатой</h2>
+        
+        <div class="task">
+            <div class="task-title">Задание:</div>
+            <p>Выведите отделы, где средняя зарплата выше 75000 рублей, и отсортируйте по убыванию средней зарплаты.</p>
+        </div>
+
+        <button onclick="toggleSolution('sol9')">Показать решение</button>
+        <div id="sol9" class="solution">
+            <pre><code>SELECT department,
+       ROUND(AVG(salary), 2) as avg_salary
+FROM employees
+GROUP BY department
+HAVING AVG(salary) > 75000
+ORDER BY avg_salary DESC;</code></pre>
+            
+            <div class="result">
+                <div class="result-title">Результат:</div>
+                <table>
+                    <tr>
+                        <th>department</th>
+                        <th>avg_salary</th>
+                    </tr>
+                    <tr><td>IT</td><td>85000.00</td></tr>
+                </table>
+            </div>
+        </div>
+
+        <h2>🎓 Задание 10: Комплексный запрос</h2>
+        
+        <div class="task">
+            <div class="task-title">Задание:</div>
+            <p>Для каждого отдела выведите:</p>
+            <ul>
+                <li>Название отдела</li>
+                <li>Количество сотрудников</li>
+                <li>Среднюю зарплату</li>
+                <li>Минимальную зарплату</li>
+                <li>Максимальную зарплату</li>
+                <li>Общий фонд оплаты труда</li>
+            </ul>
+            <p>Отсортируйте результат по общему фонду оплаты труда в убывающем порядке.</p>
+        </div>
+
+        <button onclick="toggleSolution('sol10')">Показать решение</button>
+        <div id="sol10" class="solution">
+            <pre><code>SELECT department,
+       COUNT(*) as employee_count,
+       ROUND(AVG(salary), 2) as avg_salary,
+       MIN(salary) as min_salary,
+       MAX(salary) as max_salary,
+       SUM(salary) as total_fund
+FROM employees
+GROUP BY department
+ORDER BY total_fund DESC;</code></pre>
+            
+            <div class="result">
+                <div class="result-title">Результат:</div>
+                <table>
+                    <tr>
+                        <th>department</th>
+                        <th>employee_count</th>
+                        <th>avg_salary</th>
+                        <th>min_salary</th>
+                        <th>max_salary</th>
+                        <th>total_fund</th>
+                    </tr>
+                    <tr><td>IT</td><td>4</td><td>85000.00</td><td>70000</td><td>95000</td><td>340000</td></tr>
+                    <tr><td>Sales</td><td>3</td><td>73333.33</td><td>65000</td><td>85000</td><td>220000</td></tr>
+                    <tr><td>Marketing</td><td>3</td><td>71666.67</td><td>68000</td><td>75000</td><td>215000</td></tr>
+                    <tr><td>HR</td><td>3</td><td>66666.67</td><td>60000</td><td>75000</td><td>200000</td></tr>
+                    <tr><td>Finance</td><td>2</td><td>75000.00</td><td>70000</td><td>80000</td><td>150000</td></tr>
+                </table>
+            </div>
+        </div>
+
+        <h2>📋 Итоговая проверка</h2>
+        
+        <div class="task">
+            <div class="task-title">Контрольные вопросы:</div>
+            <ol>
+                <li>В чем разница между WHERE и HAVING?</li>
+                <li>Можно ли использовать GROUP BY без агрегатных функций?</li>
+                <li>Как отсортировать результаты группировки?</li>
+                <li>Можно ли группировать по нескольким полям одновременно?</li>
+                <li>Какие агрегатные функции вы использовали в этой работе?</li>
+            </ol>
+        </div>
+
+        <div class="hint">
+            <h3>Ответы на контрольные вопросы:</h3>
+            <ol>
+                <li><strong>WHERE</strong> фильтрует строки до группировки, <strong>HAVING</strong> фильтрует группы после группировки.</li>
+                <li>Да, GROUP BY можно использовать без агрегатных функций, но это имеет ограниченный смысл.</li>
+                <li>Да, с помощью ORDER BY после GROUP BY.</li>
+                <li>Да, можно указывать несколько полей через запятую в GROUP BY.</li>
+                <li>COUNT, SUM, AVG, MIN, MAX.</li>
+            </ol>
+        </div>
+
+        <h2>🎉 Поздравляем!</h2>
+        <p>Вы успешно完成了 практическую работу по использованию GROUP BY в SQLite! Теперь вы умеете:</p>
+        <ul>
+            <li>Создавать таблицы и заполнять их данными</li>
+            <li>Группировать данные по одному и нескольким полям</li>
+            <li>Использовать все основные агрегатные функции</li>
+            <li>Применять HAVING для фильтрации групп</li>
+            <li>Создавать комплексные запросы с группировкой</li>
+        </ul>
+    </div>
+
+    <script>
+        function toggleSolution(id) {
+            const solution = document.getElementById(id);
+            solution.classList.toggle('show');
+        }
+    </script>
+</body>
+</html>
