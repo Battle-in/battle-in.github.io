@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Практика: WHERE, DISTINCT, BETWEEN, IN, LIKE</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        }
+
+        h1 {
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 2.2em;
+        }
+
+        h2 {
+            color: #764ba2;
+            margin-top: 30px;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        h3 {
+            color: #555;
+            margin-top: 20px;
+            margin-bottom: 10px;
+        }
+
+        .intro {
+            background: #f8f9fa;
+            padding: 20px;
+            border-left: 4px solid #667eea;
+            margin-bottom: 30px;
+            border-radius: 5px;
+        }
+
+        .section-badge {
+            display: inline-block;
+            background: #764ba2;
+            color: white;
+            font-size: 12px;
+            padding: 4px 10px;
+            border-radius: 12px;
+            margin-bottom: 8px;
+        }
+
+        .task {
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+
+        .task-title {
+            font-weight: bold;
+            color: #856404;
+            margin-bottom: 10px;
+        }
+
+        pre {
+            background: #2d2d2d;
+            color: #f8f8f2;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            margin: 15px 0;
+        }
+
+        code {
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 14px;
+        }
+
+        .inline-code {
+            background: #e9ecef;
+            padding: 2px 6px;
+            border-radius: 3px;
+            color: #d63384;
+            font-family: 'Consolas', 'Monaco', monospace;
+        }
+
+        .result {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 5px;
+        }
+
+        .result-title {
+            font-weight: bold;
+            color: #155724;
+            margin-bottom: 10px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+            background: white;
+            font-size: 13px;
+        }
+
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+
+        th {
+            background: #667eea;
+            color: white;
+            font-weight: bold;
+        }
+
+        tr:nth-child(even) {
+            background: #f8f9fa;
+        }
+
+        .hint {
+            background: #e7f3ff;
+            border-left: 4px solid #2196F3;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 5px;
+        }
+
+        .solution {
+            background: #f0f0f0;
+            border: 1px solid #ccc;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 5px;
+            display: none;
+        }
+
+        .solution.show {
+            display: block;
+        }
+
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            margin: 5px 0;
+            transition: background 0.3s;
+        }
+
+        button:hover {
+            background: #764ba2;
+        }
+
+        .syntax-box {
+            background: #f8f9fa;
+            border: 2px solid #667eea;
+            padding: 20px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+
+        ul, ol {
+            margin-left: 30px;
+            margin-bottom: 15px;
+        }
+
+        li {
+            margin-bottom: 8px;
+        }
+
+        .toc a {
+            color: #667eea;
+            text-decoration: none;
+        }
+
+        .toc a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 Практика: фильтрация и выборка в SQL</h1>
+        <p style="color: #666; margin-bottom: 20px;">Темы 3–5: WHERE · DISTINCT · BETWEEN · IN · LIKE</p>
+
+        <div class="intro">
+            <h3>Цель работы</h3>
+            <p>Научиться отбирать нужные строки из таблицы с помощью условий, убирать повторы и искать значения по диапазону, списку и шаблону.</p>
+            <h3>Содержание</h3>
+            <ol class="toc">
+                <li><a href="#setup">Подготовка: таблица <span class="inline-code">books</span></a></li>
+                <li><a href="#where">Фильтрация строк (WHERE)</a></li>
+                <li><a href="#distinct">Уникальные значения (DISTINCT)</a></li>
+                <li><a href="#between-in-like">BETWEEN, IN и LIKE</a></li>
+                <li><a href="#quiz">Контрольные вопросы</a></li>
+            </ol>
+            <p style="margin-top: 12px;"><strong>Инструмент:</strong> SQLite (DB Browser, sqlite3 в терминале или любой SQL-песочница).</p>
+        </div>
+
+        <h2 id="setup">🚀 Подготовка данных</h2>
+
+        <div class="task">
+            <div class="task-title">Задание 0:</div>
+            <p>Создайте таблицу <span class="inline-code">books</span> и заполните её данными ниже — они понадобятся во всех заданиях.</p>
+        </div>
+
+        <h3>Структура таблицы</h3>
+        <pre><code>CREATE TABLE books (
+    id INTEGER PRIMARY KEY,
+    title TEXT NOT NULL,
+    author TEXT NOT NULL,
+    genre TEXT NOT NULL,
+    publication_year INTEGER NOT NULL,
+    pages INTEGER NOT NULL,
+    price REAL NOT NULL,
+    sku TEXT NOT NULL
+);</code></pre>
+
+        <h3>Данные для вставки</h3>
+        <pre><code>INSERT INTO books (title, author, genre, publication_year, pages, price, sku) VALUES
+('Война и мир', 'Л. Толстой', 'Классика', 1869, 1225, 890, 'A-001'),
+('Преступление и наказание', 'Ф. Достоевский', 'Классика', 1866, 671, 650, 'A-002'),
+('1984', 'Дж. Оруэлл', 'Антиутопия', 1949, 328, 420, 'B-101'),
+('Мастер и Маргарита', 'М. Булгаков', 'Классика', 1967, 480, 550, 'A-003'),
+('Дюна', 'Ф. Герберт', 'Фантастика', 1965, 688, 720, 'C-201'),
+('Основание', 'А. Азимов', 'Фантастика', 1951, 255, 380, 'C-202'),
+('Гарри Поттер и философский камень', 'Дж. Роулинг', 'Фэнтези', 1997, 432, 590, 'D-301'),
+('Хоббит', 'Дж. Р. Р. Толкиен', 'Фэнтези', 1937, 310, 480, 'D-302'),
+('Краткая история времени', 'С. Хокинг', 'Научпоп', 1988, 256, 350, 'E-401'),
+('Sapiens', 'Ю. Харари', 'Научпоп', 2011, 512, 620, 'E-402'),
+('Шерлок Холмс: этюды', 'А. Конан Дойл', 'Детектив', 1892, 320, 400, 'F-501'),
+('Убийство в Восточном экспрессе', 'А. Кристи', 'Детектив', 1934, 288, 390, 'F-502'),
+('Чистый код', 'Р. Мартин', 'IT', 2008, 464, 850, 'G-601'),
+('SQL для чайников', 'А. Тейлор', 'IT', 2015, 380, 520, 'G-602'),
+('Алгоритмы', 'Т. Кормен', 'IT', 2009, 1312, 1200, 'G-603'),
+('Маленький принц', 'А. de Saint-Exupéry', 'Сказка', 1943, 96, 280, 'H-701'),
+('1984 (переиздание)', 'Дж. Оруэлл', 'Антиутопия', 2020, 328, 450, 'B-102'),
+('Дюна: Мессия', 'Ф. Герберт', 'Фантастика', 1969, 256, 410, 'C-203');</code></pre>
+
+        <button onclick="toggleSolution('sol0')">Показать справочную таблицу</button>
+        <div id="sol0" class="solution">
+            <div class="result">
+                <div class="result-title">Все 18 записей (для самопроверки):</div>
+                <table>
+                    <tr>
+                        <th>title</th>
+                        <th>author</th>
+                        <th>genre</th>
+                        <th>year</th>
+                        <th>pages</th>
+                        <th>price</th>
+                        <th>sku</th>
+                    </tr>
+                    <tr><td>Война и мир</td><td>Л. Толстой</td><td>Классика</td><td>1869</td><td>1225</td><td>890</td><td>A-001</td></tr>
+                    <tr><td>Преступление и наказание</td><td>Ф. Достоевский</td><td>Классика</td><td>1866</td><td>671</td><td>650</td><td>A-002</td></tr>
+                    <tr><td>1984</td><td>Дж. Оруэлл</td><td>Антиутопия</td><td>1949</td><td>328</td><td>420</td><td>B-101</td></tr>
+                    <tr><td>Мастер и Маргарита</td><td>М. Булгаков</td><td>Классика</td><td>1967</td><td>480</td><td>550</td><td>A-003</td></tr>
+                    <tr><td>Дюна</td><td>Ф. Герберт</td><td>Фантастика</td><td>1965</td><td>688</td><td>720</td><td>C-201</td></tr>
+                    <tr><td>Основание</td><td>А. Азимов</td><td>Фантастика</td><td>1951</td><td>255</td><td>380</td><td>C-202</td></tr>
+                    <tr><td>Гарри Поттер и философский камень</td><td>Дж. Роулинг</td><td>Фэнтези</td><td>1997</td><td>432</td><td>590</td><td>D-301</td></tr>
+                    <tr><td>Хоббит</td><td>Дж. Р. Р. Толкиен</td><td>Фэнтези</td><td>1937</td><td>310</td><td>480</td><td>D-302</td></tr>
+                    <tr><td>Краткая история времени</td><td>С. Хокинг</td><td>Научпоп</td><td>1988</td><td>256</td><td>350</td><td>E-401</td></tr>
+                    <tr><td>Sapiens</td><td>Ю. Харари</td><td>Научпоп</td><td>2011</td><td>512</td><td>620</td><td>E-402</td></tr>
+                    <tr><td>Шерлок Холмс: этюды</td><td>А. Конан Дойл</td><td>Детектив</td><td>1892</td><td>320</td><td>400</td><td>F-501</td></tr>
+                    <tr><td>Убийство в Восточном экспрессе</td><td>А. Кристи</td><td>Детектив</td><td>1934</td><td>288</td><td>390</td><td>F-502</td></tr>
+                    <tr><td>Чистый код</td><td>Р. Мартин</td><td>IT</td><td>2008</td><td>464</td><td>850</td><td>G-601</td></tr>
+                    <tr><td>SQL для чайников</td><td>А. Тейлор</td><td>IT</td><td>2015</td><td>380</td><td>520</td><td>G-602</td></tr>
+                    <tr><td>Алгоритмы</td><td>Т. Кормен</td><td>IT</td><td>2009</td><td>1312</td><td>1200</td><td>G-603</td></tr>
+                    <tr><td>Маленький принц</td><td>А. de Saint-Exupéry</td><td>Сказка</td><td>1943</td><td>96</td><td>280</td><td>H-701</td></tr>
+                    <tr><td>1984 (переиздание)</td><td>Дж. Оруэлл</td><td>Антиутопия</td><td>2020</td><td>328</td><td>450</td><td>B-102</td></tr>
+                    <tr><td>Дюна: Мессия</td><td>Ф. Герберт</td><td>Фантастика</td><td>1969</td><td>256</td><td>410</td><td>C-203</td></tr>
+                </table>
+            </div>
+        </div>
+
+        <h2 id="where">📌 Тема 3: фильтрация строк (WHERE)</h2>
+
+        <div class="syntax-box">
+            <pre><code>SELECT столбцы
+FROM таблица
+WHERE условие;</code></pre>
+            <ul>
+                <li>Сравнение: <span class="inline-code">=</span>, <span class="inline-code">&lt;</span>, <span class="inline-code">&gt;</span>, <span class="inline-code">&lt;=</span>, <span class="inline-code">&gt;=</span>, <span class="inline-code">&lt;&gt;</span> или <span class="inline-code">!=</span></li>
+                <li>Логика: <span class="inline-code">AND</span>, <span class="inline-code">OR</span>, <span class="inline-code">NOT</span> (скобки задают приоритет)</li>
+            </ul>
+        </div>
+
+        <span class="section-badge">Задание 1</span>
+        <div class="task">
+            <div class="task-title">Операторы сравнения</div>
+            <p>Выведите название, автора и цену всех книг, у которых цена <strong>строго больше</strong> 600 рублей.</p>
+        </div>
+        <button onclick="toggleSolution('sol1')">Показать решение</button>
+        <div id="sol1" class="solution">
+            <pre><code>SELECT title, author, price
+FROM books
+WHERE price > 600;</code></pre>
+            <div class="result">
+                <div class="result-title">Результат (6 строк):</div>
+                <table>
+                    <tr><th>title</th><th>author</th><th>price</th></tr>
+                    <tr><td>Война и мир</td><td>Л. Толстой</td><td>890</td></tr>
+                    <tr><td>Преступление и наказание</td><td>Ф. Достоевский</td><td>650</td></tr>
+                    <tr><td>Дюна</td><td>Ф. Герберт</td><td>720</td></tr>
+                    <tr><td>Sapiens</td><td>Ю. Харари</td><td>620</td></tr>
+                    <tr><td>Чистый код</td><td>Р. Мартин</td><td>850</td></tr>
+                    <tr><td>Алгоритмы</td><td>Т. Кормен</td><td>1200</td></tr>
+                </table>
+            </div>
+        </div>
+
+        <span class="section-badge">Задание 2</span>
+        <div class="task">
+            <div class="task-title"><span class="inline-code">&lt;&gt;</span> / <span class="inline-code">!=</span></div>
+            <p>Выведите все книги, жанр которых <strong>не равен</strong> «Классика». Покажите <span class="inline-code">title</span> и <span class="inline-code">genre</span>.</p>
+        </div>
+        <div class="hint">💡 В SQLite работают и <span class="inline-code">&lt;&gt;</span>, и <span class="inline-code">!=</span>.</div>
+        <button onclick="toggleSolution('sol2')">Показать решение</button>
+        <div id="sol2" class="solution">
+            <pre><code>SELECT title, genre
+FROM books
+WHERE genre <> 'Классика';</code></pre>
+            <p style="margin-top: 10px;">Должно получиться 15 строк (все, кроме трёх классических романов).</p>
+        </div>
+
+        <span class="section-badge">Задание 3</span>
+        <div class="task">
+            <div class="task-title">AND</div>
+            <p>Найдите книги жанра <strong>IT</strong>, выпущенные <strong>после 2010 года</strong> (год &gt; 2010). Выведите title, publication_year, price.</p>
+        </div>
+        <button onclick="toggleSolution('sol3')">Показать решение</button>
+        <div id="sol3" class="solution">
+            <pre><code>SELECT title, publication_year, price
+FROM books
+WHERE genre = 'IT' AND publication_year > 2010;</code></pre>
+            <div class="result">
+                <div class="result-title">Результат:</div>
+                <table>
+                    <tr><th>title</th><th>publication_year</th><th>price</th></tr>
+                    <tr><td>SQL для чайников</td><td>2015</td><td>520</td></tr>
+                </table>
+            </div>
+        </div>
+
+        <span class="section-badge">Задание 4</span>
+        <div class="task">
+            <div class="task-title">OR и скобки</div>
+            <p>Выведите книги, у которых жанр «Фантастика» <strong>или</strong> «Фэнтези», <strong>и при этом</strong> цена не выше 500. Используйте скобки, чтобы условие читалось однозначно.</p>
+        </div>
+        <button onclick="toggleSolution('sol4')">Показать решение</button>
+        <div id="sol4" class="solution">
+            <pre><code>SELECT title, genre, price
+FROM books
+WHERE (genre = 'Фантастика' OR genre = 'Фэнтези')
+  AND price <= 500;</code></pre>
+            <div class="result">
+                <div class="result-title">Результат:</div>
+                <table>
+                    <tr><th>title</th><th>genre</th><th>price</th></tr>
+                    <tr><td>Основание</td><td>Фантастика</td><td>380</td></tr>
+                    <tr><td>Хоббит</td><td>Фэнтези</td><td>480</td></tr>
+                    <tr><td>Дюна: Мессия</td><td>Фантастика</td><td>410</td></tr>
+                </table>
+            </div>
+        </div>
+
+        <span class="section-badge">Задание 5</span>
+        <div class="task">
+            <div class="task-title">NOT</div>
+            <p>Выведите названия книг, которые <strong>не</strong> относятся к детективам и <strong>не</strong> относятся к сказкам (одно условие с <span class="inline-code">NOT</span> и <span class="inline-code">IN</span> — тема 5, но здесь удобная тренировка логики).</p>
+        </div>
+        <button onclick="toggleSolution('sol5')">Показать решение</button>
+        <div id="sol5" class="solution">
+            <pre><code>SELECT title
+FROM books
+WHERE genre NOT IN ('Детектив', 'Сказка');</code></pre>
+            <p style="margin-top: 10px;">Альтернатива без IN: <span class="inline-code">WHERE NOT (genre = 'Детектив' OR genre = 'Сказка')</span></p>
+        </div>
+
+        <h2 id="distinct">✨ Тема 4: удаление дубликатов (DISTINCT)</h2>
+
+        <div class="syntax-box">
+            <pre><code>SELECT DISTINCT столбец
+FROM таблица;</code></pre>
+            <p><span class="inline-code">DISTINCT</span> оставляет по одной строке для каждого уникального сочетания выбранных столбцов.</p>
+        </div>
+
+        <span class="section-badge">Задание 6</span>
+        <div class="task">
+            <div class="task-title">Уникальные жанры</div>
+            <p>Выведите список <strong>всех различных</strong> жанров в каталоге (без повторов), отсортированный по алфавиту.</p>
+        </div>
+        <button onclick="toggleSolution('sol6')">Показать решение</button>
+        <div id="sol6" class="solution">
+            <pre><code>SELECT DISTINCT genre
+FROM books
+ORDER BY genre;</code></pre>
+            <div class="result">
+                <div class="result-title">8 уникальных жанров:</div>
+                <p>IT, Антиутопия, Детектив, Классика, Научпоп, Сказка, Фантастика, Фэнтези</p>
+            </div>
+        </div>
+
+        <span class="section-badge">Задание 7</span>
+        <div class="task">
+            <div class="task-title">DISTINCT по нескольким столбцам</div>
+            <p>Автор «Дж. Оруэлл» представлен двумя изданиями «1984». Выведите уникальные пары <span class="inline-code">(author, genre)</span> — сколько разных сочетаний автор+жанр есть в таблице?</p>
+        </div>
+        <div class="hint">💡 <span class="inline-code">SELECT DISTINCT author, genre FROM books;</span> — строки с одинаковой парой схлопнутся в одну.</div>
+        <button onclick="toggleSolution('sol7')">Показать решение</button>
+        <div id="sol7" class="solution">
+            <pre><code>SELECT DISTINCT author, genre
+FROM books
+ORDER BY author, genre;</code></pre>
+            <p style="margin-top: 10px;">У Оруэлла одна пара (Дж. Оруэлл, Антиутопия), хотя книг две.</p>
+        </div>
+
+        <span class="section-badge">Задание 8</span>
+        <div class="task">
+            <div class="task-title">Сравнение с обычным SELECT</div>
+            <p>Сначала выполните <span class="inline-code">SELECT genre FROM books;</span> — 18 строк. Затем <span class="inline-code">SELECT DISTINCT genre FROM books;</span>. Запишите, сколько строк во втором запросе и почему числа отличаются.</p>
+        </div>
+        <button onclick="toggleSolution('sol8')">Показать решение</button>
+        <div id="sol8" class="solution">
+            <p>Во втором запросе — <strong>8</strong> строк: повторяющиеся жанры (например, три «Классика», три «IT») показываются один раз.</p>
+        </div>
+
+        <h2 id="between-in-like">🎯 Тема 5: BETWEEN, IN и LIKE</h2>
+
+        <div class="syntax-box">
+            <ul>
+                <li><span class="inline-code">BETWEEN a AND b</span> — включая границы a и b</li>
+                <li><span class="inline-code">IN (v1, v2, …)</span> — значение равно одному из списка</li>
+                <li><span class="inline-code">LIKE 'шаблон'</span> — <span class="inline-code">%</span> любая последовательность символов, <span class="inline-code">_</span> ровно один символ</li>
+            </ul>
+        </div>
+
+        <span class="section-badge">Задание 9</span>
+        <div class="task">
+            <div class="task-title">BETWEEN</div>
+            <p>Выведите title и price книг с ценой от <strong>400 до 600 включительно</strong>.</p>
+        </div>
+        <button onclick="toggleSolution('sol9')">Показать решение</button>
+        <div id="sol9" class="solution">
+            <pre><code>SELECT title, price
+FROM books
+WHERE price BETWEEN 400 AND 600;</code></pre>
+            <div class="result">
+                <div class="result-title">Примеры из результата:</div>
+                <table>
+                    <tr><th>title</th><th>price</th></tr>
+                    <tr><td>1984</td><td>420</td></tr>
+                    <tr><td>Мастер и Маргарита</td><td>550</td></tr>
+                    <tr><td>Гарри Поттер…</td><td>590</td></tr>
+                    <tr><td>SQL для чайников</td><td>520</td></tr>
+                </table>
+            </div>
+        </div>
+
+        <span class="section-badge">Задание 10</span>
+        <div class="task">
+            <div class="task-title">BETWEEN для года и объёма</div>
+            <p>Книги, изданные <strong>между 1950 и 1970 годами</strong> (границы включены), объёмом <strong>от 250 до 700 страниц</strong>. Выведите title, publication_year, pages.</p>
+        </div>
+        <button onclick="toggleSolution('sol10')">Показать решение</button>
+        <div id="sol10" class="solution">
+            <pre><code>SELECT title, publication_year, pages
+FROM books
+WHERE publication_year BETWEEN 1950 AND 1970
+  AND pages BETWEEN 250 AND 700;</code></pre>
+            <div class="result">
+                <div class="result-title">Результат (4 строки):</div>
+                <table>
+                    <tr><th>title</th><th>publication_year</th><th>pages</th></tr>
+                    <tr><td>Основание</td><td>1951</td><td>255</td></tr>
+                    <tr><td>Дюна</td><td>1965</td><td>688</td></tr>
+                    <tr><td>Мастер и Маргарита</td><td>1967</td><td>480</td></tr>
+                    <tr><td>Дюна: Мессия</td><td>1969</td><td>256</td></tr>
+                </table>
+            </div>
+        </div>
+
+        <span class="section-badge">Задание 11</span>
+        <div class="task">
+            <div class="task-title">IN</div>
+            <p>Выведите title, genre, price для жанров: «Научпоп», «IT», «Сказка».</p>
+        </div>
+        <button onclick="toggleSolution('sol11')">Показать решение</button>
+        <div id="sol11" class="solution">
+            <pre><code>SELECT title, genre, price
+FROM books
+WHERE genre IN ('Научпоп', 'IT', 'Сказка');</code></pre>
+            <p style="margin-top: 10px;">6 книг: 2 научпоп, 3 IT, 1 сказка.</p>
+        </div>
+
+        <span class="section-badge">Задание 12</span>
+        <div class="task">
+            <div class="task-title">LIKE и маска <span class="inline-code">%</span></div>
+            <p>Найдите книги, в названии которых есть слово, начинающееся на «Дю» (подсказка: название начинается с «Дю»).</p>
+        </div>
+        <button onclick="toggleSolution('sol12')">Показать решение</button>
+        <div id="sol12" class="solution">
+            <pre><code>SELECT title
+FROM books
+WHERE title LIKE 'Дю%';</code></pre>
+            <div class="result">
+                <div class="result-title">Результат:</div>
+                <p>Дюна; Дюна: Мессия</p>
+            </div>
+        </div>
+
+        <span class="section-badge">Задание 13</span>
+        <div class="task">
+            <div class="task-title">LIKE — подстрока</div>
+            <p>Выведите title всех книг, в названии которых встречается фрагмент <strong>« и »</strong> (пробел-и-пробел).</p>
+        </div>
+        <button onclick="toggleSolution('sol13')">Показать решение</button>
+        <div id="sol13" class="solution">
+            <pre><code>SELECT title
+FROM books
+WHERE title LIKE '% и %';</code></pre>
+            <p style="margin-top: 10px;">Например: «Война и мир», «Преступление и наказание», «Гарри Поттер и философский камень», «Мастер и Маргарита».</p>
+        </div>
+
+        <span class="section-badge">Задание 14</span>
+        <div class="task">
+            <div class="task-title">LIKE и маска <span class="inline-code">_</span></div>
+            <p>В таблице есть коды <span class="inline-code">sku</span> вида «буква-цифры» (A-001, B-101, …). Выведите title и sku для кодов, где <strong>первая буква «B»</strong>, затем дефис, затем <strong>ровно три</strong> символа (используйте три символа <span class="inline-code">_</span>).</p>
+        </div>
+        <button onclick="toggleSolution('sol14')">Показать решение</button>
+        <div id="sol14" class="solution">
+            <pre><code>SELECT title, sku
+FROM books
+WHERE sku LIKE 'B-___';</code></pre>
+            <div class="result">
+                <div class="result-title">Результат:</div>
+                <table>
+                    <tr><th>title</th><th>sku</th></tr>
+                    <tr><td>1984</td><td>B-101</td></tr>
+                    <tr><td>1984 (переиздание)</td><td>B-102</td></tr>
+                </table>
+            </div>
+        </div>
+
+        <span class="section-badge">Задание 15 — итоговое</span>
+        <div class="task">
+            <div class="task-title">Комбинированный запрос</div>
+            <p>Выведите <span class="inline-code">title</span>, <span class="inline-code">author</span>, <span class="inline-code">price</span> книг, которые:</p>
+            <ul>
+                <li>стоят от 350 до 650 (BETWEEN),</li>
+                <li>жанр не «Детектив» и не «Сказка»,</li>
+                <li>название <strong>не</strong> начинается с «1984» (подсказка: <span class="inline-code">title NOT LIKE '1984%'</span>).</li>
+            </ul>
+        </div>
+        <button onclick="toggleSolution('sol15')">Показать решение</button>
+        <div id="sol15" class="solution">
+            <pre><code>SELECT title, author, price
+FROM books
+WHERE price BETWEEN 350 AND 650
+  AND genre NOT IN ('Детектив', 'Сказка')
+  AND title NOT LIKE '1984%';</code></pre>
+        </div>
+
+        <h2 id="quiz">📋 Контрольные вопросы</h2>
+        <div class="task">
+            <ol>
+                <li>Чем отличаются операторы <span class="inline-code">&lt;&gt;</span> и <span class="inline-code">=</span>?</li>
+                <li>Зачем в условии с <span class="inline-code">AND</span> и <span class="inline-code">OR</span> ставят скобки?</li>
+                <li>Удаляет ли <span class="inline-code">DISTINCT</span> строки из таблицы в базе данных?</li>
+                <li>Включены ли границы в <span class="inline-code">BETWEEN 10 AND 20</span>?</li>
+                <li>Чем <span class="inline-code">LIKE 'a%'</span> отличается от <span class="inline-code">LIKE '_a%'</span>?</li>
+            </ol>
+        </div>
+        <button onclick="toggleSolution('solQuiz')">Показать ответы</button>
+        <div id="solQuiz" class="solution">
+            <ol>
+                <li><span class="inline-code">=</span> — равенство; <span class="inline-code">&lt;&gt;</span> (или !=) — «не равно».</li>
+                <li>Скобки задают порядок вычисления: сначала OR внутри скобок, потом AND с остальным (или наоборот — как вы написали).</li>
+                <li>Нет. DISTINCT влияет только на результат <span class="inline-code">SELECT</span>, таблица не изменяется.</li>
+                <li>Да, и 10, и 20 попадают в диапазон.</li>
+                <li><span class="inline-code">a%</span> — строка начинается с «a»; <span class="inline-code">_a%</span> — перед «a» ровно один любой символ, затем что угодно.</li>
+            </ol>
+        </div>
+
+        <h2>🎉 Готово</h2>
+        <p>После выполнения работы вы должны уверенно использовать:</p>
+        <ul>
+            <li>фильтрацию через WHERE с сравнениями и AND / OR / NOT;</li>
+            <li>DISTINCT для уникальных значений;</li>
+            <li>BETWEEN, IN и LIKE с масками % и _.</li>
+        </ul>
+    </div>
+
+    <script>
+        function toggleSolution(id) {
+            const solution = document.getElementById(id);
+            solution.classList.toggle('show');
+        }
+    </script>
+</body>
+</html>
