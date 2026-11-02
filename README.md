@@ -20,7 +20,7 @@
 | [hr_platform_sql.html](./hr_platform_sql.html) | Проектирование БД по ТЗ («Кадровый хаб», связи 1:1, N:1, N:M) | Задача на ER/схему |
 | [sql_where_distinct.html](./sql_where_distinct.html) | `WHERE`, `DISTINCT`, `BETWEEN`, `IN`, `LIKE` | Практика с решениями |
 | [sql_group_by.html](./sql_group_by.html) | `GROUP BY`, агрегаты, `HAVING` | Практика с решениями |
-| [sql_sets_subqueries.html](./sql_sets_subqueries.html) | `UNION`, `INTERSECT`, `EXCEPT`, подзапросы, `EXISTS`, `ANY`, `ALL` | Практика с решениями |
+| [sql_sets_subqueries.html](./sql_sets_subqueries.html) | `UNION`, `INTERSECT`, `EXCEPT`, подзапросы, `EXISTS`, `IN`, MAX/MIN (SQLite) | Практика с решениями |
 | [pizza.html](./pizza.html) | Декомпозиция и сложная бизнес-логика (калькулятор доставки) | Задача на программирование |
 | [oop-practice.html](./oop-practice.html) | ООП в Python: классы, методы, задания | Теория + практика |
 

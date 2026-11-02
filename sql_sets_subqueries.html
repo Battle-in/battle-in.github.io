@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SQL Quest — множества и подзапросы</title>
+  <title>SQL Quest — множества и подзапросы (SQLite)</title>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Outfit:wght@400;600;800&display=swap');
 
@@ -336,14 +336,14 @@
 <body>
   <div class="page">
     <header class="hero">
-      <span class="hero-kicker">SQLite · side quest</span>
+      <span class="hero-kicker">только SQLite</span>
       <h1>Множества &amp; подзапросы</h1>
-      <p>Объединяй результаты запросов, заглядывай внутрь других SELECT и связывай внешний мир с внутренним — как в настоящем RPG, только вместо меча у тебя точка с запятой.</p>
+      <p>Все задания и решения рассчитаны на <strong>SQLite</strong> (DB Browser for SQLite, <code style="font-size:0.9em;color:var(--cyan)">sqlite3</code>). Копируй SQL как есть — без синтаксиса PostgreSQL.</p>
       <div class="xp-bar">
-        <span class="xp-chip"><strong>UNION</strong> / ALL</span>
+        <span class="xp-chip"><strong>UNION</strong> / UNION ALL</span>
         <span class="xp-chip"><strong>INTERSECT</strong> / EXCEPT</span>
-        <span class="xp-chip">подзапросы в <strong>WHERE · FROM · SELECT</strong></span>
-        <span class="xp-chip"><strong>EXISTS · ANY · ALL</strong></span>
+        <span class="xp-chip">подзапросы <strong>WHERE · FROM · SELECT</strong></span>
+        <span class="xp-chip"><strong>EXISTS</strong> · <strong>IN</strong> · MAX/MIN</span>
         <span class="xp-chip">коррелированные</span>
       </div>
     </header>
@@ -351,6 +351,14 @@
     <section class="glass">
       <h2><span class="level-num union">0</span> Лобби: база данных</h2>
       <p>Сюжет: платформа <strong>DevQuest</strong> — хакатоны и учебные модули. Сначала создай таблицы и залей данные (скопируй в SQLite целиком).</p>
+
+      <div class="hint warn">
+        <strong>SQLite в этой работе:</strong>
+        работают <span class="inline">UNION</span>, <span class="inline">UNION ALL</span>, <span class="inline">INTERSECT</span>, <span class="inline">EXCEPT</span>,
+        подзапросы, <span class="inline">EXISTS</span>, <span class="inline">IN</span>, <span class="inline">NOT IN</span>.
+        <strong>Не работают</strong> сравнения вида <span class="inline">= ANY (SELECT …)</span> и <span class="inline">&gt; ALL (SELECT …)</span> — вместо них используй
+        <span class="inline">IN</span> / <span class="inline">EXISTS</span> и <span class="inline">MAX</span> / <span class="inline">MIN</span> (уровень 6).
+      </div>
 
       <h3>Хакатоны (для операций над множествами)</h3>
       <pre><code>CREATE TABLE hackathon_2024 (
@@ -433,7 +441,7 @@ INSERT INTO progress (learner_id, module_id, score, completed) VALUES
           <li><a href="#where-sub">Уровень 3 — подзапрос в WHERE</a></li>
           <li><a href="#from-sub">Уровень 4 — подзапрос в FROM</a></li>
           <li><a href="#select-sub">Уровень 5 — подзапрос в SELECT</a></li>
-          <li><a href="#exists">Уровень 6 — EXISTS, ANY, ALL</a></li>
+          <li><a href="#exists">Уровень 6 — EXISTS, IN, сравнение с набором</a></li>
           <li><a href="#correlated">Уровень 7 — коррелированные подзапросы</a></li>
           <li><a href="#boss">Босс-файт</a></li>
         </ul>
@@ -498,8 +506,7 @@ ORDER BY score DESC;</code></pre>
 
     <section class="glass" id="intersect">
       <h2><span class="level-num union">2</span> INTERSECT и EXCEPT</h2>
-      <p><span class="inline">INTERSECT</span> — строки, которые есть в <em>обоих</em> результатах. <span class="inline">EXCEPT</span> — строки из первого запроса, которых нет во втором (в Oracle часто пишут <span class="inline">MINUS</span>, в SQLite — <span class="inline">EXCEPT</span>).</p>
-      <div class="hint warn"><strong>SQLite:</strong> INTERSECT и EXCEPT поддерживаются; порядок столбцов и типов снова должен совпадать.</div>
+      <p><span class="inline">INTERSECT</span> — строки, которые есть в <em>обоих</em> результатах. <span class="inline">EXCEPT</span> — строки из первого запроса, которых нет во втором. Число и порядок столбцов в обоих SELECT должны совпадать.</p>
 
       <div class="task">
         <div class="task-head">Задание 2.1</div>
@@ -660,8 +667,20 @@ ORDER BY cnt DESC, city;</code></pre>
     </section>
 
     <section class="glass" id="exists">
-      <h2><span class="level-num exists">6</span> EXISTS, ANY, ALL</h2>
-      <p><span class="inline">EXISTS</span> проверяет, вернул ли подзапрос хотя бы одну строку (часто внутри — <span class="inline">SELECT 1</span>). <span class="inline">ANY</span> / <span class="inline">ALL</span> сравнивают значение с набором из подзапроса.</p>
+      <h2><span class="level-num exists">6</span> EXISTS, IN и «любой / все» через MAX</h2>
+      <p><span class="inline">EXISTS</span> проверяет, вернул ли подзапрос хотя бы одну строку (часто пишут <span class="inline">SELECT 1</span> — важен факт строки, не столбец).
+        Идеи «хотя бы одно значение из списка» и «больше каждого из списка» в SQLite выражают через <span class="inline">IN</span> / <span class="inline">EXISTS</span> и агрегаты <span class="inline">MAX</span> / <span class="inline">MIN</span>.</p>
+
+      <div class="compare-grid">
+        <div class="compare-card union">
+          <h4>«Хотя бы одно» (аналог ANY)</h4>
+          <p><span class="inline">x IN (SELECT …)</span> или <span class="inline">EXISTS (SELECT 1 … AND col = x)</span></p>
+        </div>
+        <div class="compare-card all">
+          <h4>«Больше всех» (аналог &gt; ALL)</h4>
+          <p><span class="inline">x &gt; (SELECT MAX(…) FROM … WHERE …)</span></p>
+        </div>
+      </div>
 
       <div class="task">
         <div class="task-head">Задание 6.1 — EXISTS</div>
@@ -698,16 +717,16 @@ WHERE NOT EXISTS (
       </div>
 
       <div class="task">
-        <div class="task-head">Задание 6.3 — ALL</div>
-        <p>Найди попытки по модулю 1, где балл <strong>строго больше</strong>, чем у <em>всех остальных</em> попыток по модулю 1 (классический «рекорд побил всех»).</p>
+        <div class="task-head">Задание 6.3 — больше всех остальных (MAX)</div>
+        <p>Найди попытки по модулю 1, где балл <strong>строго больше</strong>, чем у <em>каждой другой</em> попытки по модулю 1 (рекорд среди участников).</p>
       </div>
       <button class="btn" type="button" onclick="toggle('sol14')">Расшифровка</button>
       <div id="sol14" class="solution">
         <pre><code>SELECT p.learner_id, p.score
 FROM progress p
 WHERE p.module_id = 1
-  AND p.score > ALL (
-      SELECT score FROM progress
+  AND p.score &gt; (
+      SELECT MAX(score) FROM progress
       WHERE module_id = 1 AND learner_id != p.learner_id
   );</code></pre>
         <div class="result-box">
@@ -717,14 +736,15 @@ WHERE p.module_id = 1
       </div>
 
       <div class="task">
-        <div class="task-head">Задание 6.4 — ANY</div>
-        <p>Модули, для которых существует попытка с баллом 95 (хотя бы одна строка в progress с таким score).</p>
+        <div class="task-head">Задание 6.4 — IN или EXISTS</div>
+        <p>Модули, для которых есть попытка с баллом 95 (хотя бы одна строка в <span class="inline">progress</span> с таким <span class="inline">score</span>).</p>
       </div>
       <button class="btn" type="button" onclick="toggle('sol15')">Расшифровка</button>
       <div id="sol15" class="solution">
         <pre><code>SELECT title
 FROM modules m
-WHERE 95 = ANY (SELECT score FROM progress WHERE module_id = m.id);</code></pre>
+WHERE 95 IN (SELECT score FROM progress WHERE module_id = m.id);</code></pre>
+        <p class="hint">Вариант через EXISTS: <span class="inline">WHERE EXISTS (SELECT 1 FROM progress p WHERE p.module_id = m.id AND p.score = 95)</span></p>
         <div class="result-box">
           <div class="label">Результат</div>
           <p>JOIN Quest (Диана набрала 95)</p>
@@ -814,15 +834,15 @@ WHERE nickname IN (SELECT nickname FROM hackathon_2025)
       <ol>
         <li>Чем UNION отличается от UNION ALL?</li>
         <li>Можно ли заменить <span class="inline">IN (подзапрос)</span> на <span class="inline">EXISTS</span>?</li>
-        <li>Когда подзапрос в FROM удобнее, чем JOIN?</li>
+        <li>Как в SQLite проверить «балл больше, чем у всех остальных»?</li>
         <li>Что делает коррелированный подзапрос особенным?</li>
       </ol>
       <button class="btn" type="button" onclick="toggle('solQuiz')">Ответы</button>
       <div id="solQuiz" class="solution">
         <ol>
           <li>UNION удаляет дубликаты строк в объединённом результате; UNION ALL — нет.</li>
-          <li>Часто да (семантика «есть совпадение»), но синтаксис и NULL могут вести себя по-разному — проверяй на данных.</li>
-          <li>Когда нужна промежуточная агрегация или «снимок» логики, который потом присоединяют.</li>
+          <li>Часто да (семантика «есть совпадение»), но с NULL поведение может отличаться — проверяй на данных.</li>
+          <li>Сравнить с <span class="inline">MAX(…)</span> по подзапросу «все остальные строки» (для «меньше всех» — с <span class="inline">MIN</span>).</li>
           <li>Внутренний запрос использует столбцы внешней строки и пересчитывается для каждой такой строки.</li>
         </ol>
       </div>
