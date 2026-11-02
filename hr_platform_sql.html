@@ -2,7 +2,8 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<title>Задача: Проектирование БД для HR-платформы</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Практическая работа: проектирование БД по ТЗ</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body {
@@ -10,13 +11,11 @@
     background: #f4f6f9;
     color: #2c3e50;
     padding: 14px;
-    height: 100vh;
-    overflow: hidden;
+    line-height: 1.45;
   }
   .container {
-    max-width: 1200px;
+    max-width: 1100px;
     margin: 0 auto;
-    height: 100%;
     display: flex;
     flex-direction: column;
     gap: 10px;
@@ -24,42 +23,69 @@
   header {
     background: linear-gradient(135deg, #667eea, #764ba2);
     color: white;
-    padding: 10px 16px;
+    padding: 14px 18px;
     border-radius: 8px;
     text-align: center;
   }
-  header h1 { font-size: 18px; margin-bottom: 2px; }
-  header p { font-size: 12px; opacity: 0.9; }
+  header h1 { font-size: 19px; margin-bottom: 4px; }
+  header p { font-size: 12.5px; opacity: 0.92; max-width: 52rem; margin: 0 auto; }
 
-  .main {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
-    flex: 1;
-    min-height: 0;
-  }
   .card {
     background: white;
     border-radius: 8px;
-    padding: 10px 12px;
+    padding: 12px 14px;
     box-shadow: 0 2px 6px rgba(0,0,0,0.08);
-    overflow: auto;
   }
   .card h2 {
     font-size: 14px;
     color: #667eea;
     border-bottom: 2px solid #eee;
     padding-bottom: 4px;
-    margin-bottom: 6px;
+    margin-bottom: 8px;
   }
-  .req {
+  .card h3 {
+    font-size: 13px;
+    color: #555;
+    margin: 10px 0 6px;
+  }
+
+  .tz-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 16px;
+    font-size: 12px;
+    color: #7f8c8d;
+    margin-bottom: 10px;
+    padding-bottom: 8px;
+    border-bottom: 1px dashed #ddd;
+  }
+  .tz-meta span b { color: #2c3e50; }
+
+  .tz-section { margin-bottom: 10px; }
+  .tz-section > .title {
+    font-weight: 700;
     font-size: 12.5px;
-    line-height: 1.45;
-    margin-bottom: 6px;
-    padding-left: 8px;
-    border-left: 3px solid #ddd;
+    color: #764ba2;
+    margin-bottom: 4px;
   }
-  .req b { color: #2c3e50; }
+
+  .fr {
+    font-size: 12.5px;
+    margin-bottom: 8px;
+    padding: 8px 10px;
+    background: #fafbfc;
+    border-radius: 6px;
+    border-left: 3px solid #bdc3c7;
+  }
+  .fr-id {
+    font-family: Consolas, monospace;
+    font-size: 11px;
+    color: #7f8c8d;
+    display: block;
+    margin-bottom: 2px;
+  }
+  .fr b { color: #2c3e50; }
+
   .tag {
     display: inline-block;
     font-size: 10px;
@@ -72,35 +98,36 @@
   .tag-o2o { background: #27ae60; }
   .tag-m2o { background: #2980b9; }
   .tag-m2m { background: #e67e22; }
+  .tag-note { background: #95a5a6; }
+
+  .constraints {
+    font-size: 12.5px;
+    padding-left: 18px;
+  }
+  .constraints li { margin-bottom: 4px; }
 
   .task {
-    grid-column: 1 / -1;
     background: #fff8e1;
     border-left: 4px solid #f39c12;
   }
-  .task ol {
+  .task ol, .task ul {
     font-size: 12.5px;
-    line-height: 1.5;
     padding-left: 22px;
   }
-  .task li { margin-bottom: 3px; }
-  .task .hint {
+  .task li { margin-bottom: 5px; }
+  .hint {
     font-size: 11.5px;
     color: #7f8c8d;
     font-style: italic;
-    margin-top: 4px;
+    margin-top: 6px;
   }
-  .legend {
+
+  code {
+    font-family: Consolas, monospace;
     font-size: 12px;
-    line-height: 1.5;
-  }
-  .legend .ent {
     background: #ecf0f1;
-    padding: 1px 5px;
+    padding: 1px 4px;
     border-radius: 3px;
-    font-family: 'Consolas', monospace;
-    color: #c0392b;
-    font-weight: bold;
   }
 </style>
 </head>
@@ -108,69 +135,130 @@
 <div class="container">
 
   <header>
-    <h1>📋 Задача: Проектирование БД для HR-платформы</h1>
-    <p>Закрепление связей: One-to-One · Many-to-One · Many-to-Many</p>
+    <h1>Практическая работа: проектирование базы данных</h1>
+    <p>Спроектируйте схему данных по техническому заданию ниже. Готовая ER-модель и описание таблиц — результат работы, а не подсказка на странице.</p>
   </header>
 
-  <div class="main">
+  <div class="card">
+    <h2>📄 Техническое задание</h2>
+    <div class="tz-meta">
+      <span><b>Проект:</b> информационная система «Кадровый хаб»</span>
+      <span><b>Назначение:</b> учебный прототип сервиса по поиску работы (аналог hh.ru)</span>
+      <span><b>Целевая СУБД:</b> SQLite (логическая модель + опционально DDL)</span>
+    </div>
 
-    <div class="card">
-      <h2>📖 Легенда и сущности</h2>
-      <div class="legend">
-        Ты — архитектор БД. Нужно спроектировать ядро сервиса по поиску работы (аналог hh.ru).
-        <br><br>
-        Основные сущности:
-        <span class="ent">Пользователь</span>,
-        <span class="ent">Профиль соискателя</span>,
-        <span class="ent">Компания</span>,
-        <span class="ent">Вакансия</span>,
-        <span class="ent">Навык</span>,
-        <span class="ent">Отклик</span>.
+    <div class="tz-section">
+      <div class="title">1. Цель разработки</div>
+      <p style="font-size: 12.5px;">
+        Обеспечить хранение данных о пользователях, профилях соискателей, компаниях, вакансиях, навыках и откликах
+        так, чтобы поддерживались связи между сущностями, целостность данных и возможность типовых выборок
+        (вакансии компании, отклики на вакансию, навыки вакансии и т.д.).
+      </p>
+    </div>
+
+    <div class="tz-section">
+      <div class="title">2. Роли (логические, без отдельной авторизации в ТЗ)</div>
+      <ul class="constraints">
+        <li><b>Соискатель</b> — зарегистрированный пользователь с профилем; может откликаться на вакансии.</li>
+        <li><b>Работодатель</b> — представитель компании; в рамках ТЗ достаточно хранить компанию и её вакансии (учётная запись работодателя можно не детализировать).</li>
+      </ul>
+    </div>
+
+    <div class="tz-section">
+      <div class="title">3. Функциональные требования к данным</div>
+
+      <div class="fr">
+        <span class="fr-id">FR-1</span>
+        <b>Учётная запись пользователя.</b>
+        Система хранит пользователя с уникальным email, хэшем/полем пароля (достаточно текстового поля <code>password_hash</code> в учебной работе) и датой регистрации.
+      </div>
+
+      <div class="fr">
+        <span class="fr-id">FR-2</span>
+        <b>Профиль соискателя.</b>
+        Пользователь может иметь профиль соискателя: желаемая зарплата, стаж (лет), ссылка на портфолио.
+        У одного пользователя не более одного профиля; профиль не может существовать без пользователя.
+        <span class="tag tag-o2o">ожидаемая связь 1:1</span>
+      </div>
+
+      <div class="fr">
+        <span class="fr-id">FR-3</span>
+        <b>Компания.</b>
+        Хранятся название, сайт, сфера деятельности. Компания может публиковать множество вакансий.
+      </div>
+
+      <div class="fr">
+        <span class="fr-id">FR-4</span>
+        <b>Вакансия.</b>
+        Принадлежит ровно одной компании. Хранятся название должности, описание, вилка зарплаты (мин/макс или одно поле — на усмотрение проектировщика), дата публикации, признак активности (опубликована / снята).
+        <span class="tag tag-m2o">ожидаемая связь N:1 к компании</span>
+      </div>
+
+      <div class="fr">
+        <span class="fr-id">FR-5</span>
+        <b>Справочник навыков.</b>
+        Навык задаётся названием (например, «Python», «SQL»). Одно и то же название навыка не дублируется.
+        Вакансия может требовать несколько навыков; один навык может встречаться во многих вакансиях.
+        <span class="tag tag-m2m">ожидаемая связь N:M</span>
+      </div>
+
+      <div class="fr">
+        <span class="fr-id">FR-6</span>
+        <b>Отклик.</b>
+        Соискатель (через свой профиль/пользователя) откликается на вакансию. Один соискатель не может дважды откликнуться на одну и ту же вакансию.
+        Для отклика фиксируются дата создания и статус: «рассматривается», «отказ», «интервью».
+        <span class="tag tag-m2m">ожидаемая связь N:M с атрибутами связи</span>
       </div>
     </div>
 
-    <div class="card">
-      <h2>📌 Бизнес-требования</h2>
-
-      <div class="req">
-        <b>1. Пользователь ↔ Профиль.</b>
-        У пользователя есть email, пароль, дата регистрации. Он может создать себе профиль соискателя (зарплата, опыт, портфолио).
-        <span class="tag tag-o2o">1:1</span>
-      </div>
-
-      <div class="req">
-        <b>2. Компания → Вакансии.</b>
-        Компания (название, сайт, сфера) публикует вакансии. Вакансия всегда принадлежит <u>только одной</u> компании.
-        <span class="tag tag-m2o">N:1</span>
-      </div>
-
-      <div class="req">
-        <b>3. Вакансия ↔ Навыки.</b>
-        Навык ("Python", "SQL", ...) требуется во множестве вакансий, и одна вакансия требует множество навыков.
-        <span class="tag tag-m2m">N:M</span>
-      </div>
-
-      <div class="req">
-        <b>4. Соискатель ↔ Вакансия (Отклики).</b>
-        Соискатель откликается на много вакансий, у вакансии много откликов. У отклика есть <i>дата</i> и <i>статус</i> (рассматривается / отказ / интервью).
-        <span class="tag tag-m2m">N:M</span>
-      </div>
+    <div class="tz-section">
+      <div class="title">4. Ограничения целостности</div>
+      <ul class="constraints">
+        <li>У каждой таблицы — первичный ключ (<code>PRIMARY KEY</code>).</li>
+        <li>Связи реализуются через внешние ключи (<code>FOREIGN KEY</code>) там, где это уместно для SQLite.</li>
+        <li>Email пользователя — уникален (<code>UNIQUE</code>).</li>
+        <li>Название навыка — уникально.</li>
+        <li>Пара «соискатель + вакансия» в откликах — уникальна (один отклик на вакансию от одного соискателя).</li>
+        <li>Обязательные поля помечаются <code>NOT NULL</code> по смыслу ТЗ.</li>
+      </ul>
     </div>
 
-    <div class="card task">
-      <h2>🎯 Твоё задание</h2>
-      <ol>
-        <li><b>Определить сущности</b> — какие таблицы понадобятся.</li>
-        <li><b>Описать связи</b>, явно указав тип: <span class="tag tag-o2o">1:1</span> / <span class="tag tag-m2o">N:1</span> / <span class="tag tag-m2m">N:M</span>.</li>
-        <li><b>Спроектировать таблицы:</b>
-          названия таблиц и полей, <b>PK</b> для каждой, <b>FK</b> где есть связи.
-          <div class="hint">💡 Подсказка: связь N:M реализуется через промежуточную таблицу. Подумай, куда деть доп. данные отклика (дата, статус).</div>
-        </li>
-        <li><b>(Опционально)</b> Написать <code>CREATE TABLE</code> для 2 самых сложных таблиц.</li>
-      </ol>
+    <div class="tz-section">
+      <div class="title">5. Требования к результату проектирования (со стороны заказчика)</div>
+      <ul class="constraints">
+        <li>Схема должна быть приведена к разумной нормализации (минимум 1NF и 2NF; устранение избыточности справочников).</li>
+        <li>Связи N:M не хранятся массивами в одном поле — только отдельными таблицами связи.</li>
+        <li>Допускается краткое текстовое обоснование выбора таблиц (5–10 предложений).</li>
+      </ul>
     </div>
 
+    <div class="tz-section">
+      <div class="title">6. Вне scope (не требуется в этой работе)</div>
+      <ul class="constraints">
+        <li>Чат, уведомления, платежи, модерация контента, полнотекстовый поиск.</li>
+        <li>Роли администратора и разграничение прав на уровне БД.</li>
+      </ul>
+    </div>
   </div>
+
+  <div class="card task">
+    <h2>🎯 Задание студента</h2>
+    <p style="font-size: 12.5px; margin-bottom: 8px;">
+      На основе <strong>только</strong> разделов ТЗ выше спроектируйте реляционную базу данных для «Кадрового хаба».
+    </p>
+    <ol>
+      <li><b>Выделить сущности</b> и кратко описать назначение каждой таблицы (1–2 предложения).</li>
+      <li><b>Построить ER-диаграмму</b> (от руки, draw.io, dbdiagram.io или аналог): сущности, связи, кардинальность (1:1, N:1, N:M).</li>
+      <li><b>Логическая схема:</b> для каждой таблицы — имя, список полей, типы данных SQLite, PK, FK, UNIQUE/NOT NULL где нужно по ТЗ.</li>
+      <li><b>Связи N:M</b> — указать промежуточные таблицы; атрибуты отклика (дата, статус) разместить согласно FR-6.</li>
+      <li><b>Нормализация:</b> указать, какие аномалии устранены (пример: дублирование названия компании в каждой вакансии).</li>
+      <li><b>(По желанию)</b> SQL: <code>CREATE TABLE</code> для двух наиболее показательных таблиц (например, отклик и связь вакансия–навык).</li>
+    </ol>
+    <p class="hint">
+      💡 Теги 1:1 / N:1 / N:M в ТЗ — ориентир для самопроверки, а не готовый список таблиц. Имена таблиц и полей вы выбираете сами (единый стиль: snake_case рекомендуется).
+    </p>
+  </div>
+
 </div>
 </body>
 </html>
