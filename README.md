@@ -21,6 +21,7 @@
 | [sql_where_distinct.html](./sql_where_distinct.html) | `WHERE`, `DISTINCT`, `BETWEEN`, `IN`, `LIKE` | Практика с решениями |
 | [sql_group_by.html](./sql_group_by.html) | `GROUP BY`, агрегаты, `HAVING` | Практика с решениями |
 | [sql_sets_subqueries.html](./sql_sets_subqueries.html) | `UNION`, `INTERSECT`, `EXCEPT`, подзапросы, `EXISTS`, `IN`, MAX/MIN (SQLite) | Практика с решениями |
+| [sql_capstone.html](./sql_capstone.html) | Итог: SkillPoint — проектирование БД, индексы, 21 бизнес-отчёт (SQLite) | Самостоятельная работа |
 | [pizza.html](./pizza.html) | Декомпозиция и сложная бизнес-логика (калькулятор доставки) | Задача на программирование |
 | [oop-practice.html](./oop-practice.html) | ООП в Python: классы, методы, задания | Теория + практика |
 
@@ -29,9 +30,10 @@
 1. **Фильтрация и выборка** — [sql_where_distinct.html](./sql_where_distinct.html): условия, уникальные значения, диапазоны и шаблоны.
 2. **Группировка** — [sql_group_by.html](./sql_group_by.html): агрегатные функции и фильтрация групп.
 3. **Множества и подзапросы** — [sql_sets_subqueries.html](./sql_sets_subqueries.html): объединение результатов и вложенные SELECT.
-4. **Проектирование** — [hr_platform_sql.html](./hr_platform_sql.html): схема БД по техническому заданию на сервис «Кадровый хаб».
+4. **Проектирование (ТЗ)** — [hr_platform_sql.html](./hr_platform_sql.html): схема БД по техническому заданию на сервис «Кадровый хаб».
+5. **Итоговая интеграция** — [sql_capstone.html](./sql_capstone.html): с нуля таблицы, связи, индексы и все типы запросов из пунктов 1–4.
 
-Порядок можно менять: страница по `GROUP BY` использует свою таблицу `employees` и не зависит от `books`.
+Порядок можно менять: страницы по `GROUP BY`, `WHERE` и подзапросам используют свои готовые данные; capstone — без готовой схемы.
 
 ## Что внутри SQL-практик
 
@@ -62,6 +64,7 @@ database_tasks/
 ├── sql_where_distinct.html
 ├── sql_group_by.html
 ├── sql_sets_subqueries.html
+├── sql_capstone.html
 ├── pizza.html
 └── oop-practice.html
 ```

@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Итоговая практика — SkillPoint (SQLite)</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;600;700&display=swap');
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0c1929;
+      --grid: rgba(100, 180, 255, 0.06);
+      --paper: #f7f9fc;
+      --ink: #1a2a3a;
+      --muted: #5a6b7d;
+      --accent: #0066cc;
+      --accent-soft: #e8f2ff;
+      --stamp: #c0392b;
+      --green: #0d7a4a;
+      --green-soft: #e6f5ee;
+      --mono: 'IBM Plex Mono', Consolas, monospace;
+      --sans: 'IBM Plex Sans', system-ui, sans-serif;
+    }
+
+    body {
+      font-family: var(--sans);
+      background: var(--bg);
+      color: var(--ink);
+      line-height: 1.65;
+      min-height: 100vh;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background:
+        linear-gradient(var(--grid) 1px, transparent 1px),
+        linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+      background-size: 24px 24px;
+      pointer-events: none;
+    }
+
+    .wrap {
+      position: relative;
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 2rem 1.25rem 3.5rem;
+    }
+
+    .blueprint-header {
+      border: 2px solid rgba(255,255,255,0.25);
+      border-radius: 4px;
+      padding: 1.5rem 1.75rem;
+      margin-bottom: 1.5rem;
+      color: #dce8f5;
+      background: rgba(0, 40, 80, 0.45);
+    }
+
+    .blueprint-header .label {
+      font-family: var(--mono);
+      font-size: 0.7rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: #7eb8ff;
+      margin-bottom: 0.5rem;
+    }
+
+    .blueprint-header h1 {
+      font-size: clamp(1.5rem, 4vw, 2rem);
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+    }
+
+    .blueprint-header p { font-size: 0.95rem; opacity: 0.92; }
+
+    .sheet {
+      background: var(--paper);
+      border-radius: 2px;
+      box-shadow: 0 12px 40px rgba(0,0,0,0.35);
+      padding: 1.75rem 2rem;
+      margin-bottom: 1.25rem;
+    }
+
+    .sheet h2 {
+      font-size: 1.15rem;
+      color: var(--accent);
+      border-bottom: 2px solid var(--accent);
+      padding-bottom: 0.35rem;
+      margin-bottom: 1rem;
+    }
+
+    .sheet h3 {
+      font-size: 0.95rem;
+      margin: 1.15rem 0 0.5rem;
+      color: var(--ink);
+    }
+
+    p, li { font-size: 0.92rem; }
+    ul, ol { margin: 0.5rem 0 0.75rem 1.25rem; }
+    li { margin-bottom: 0.4rem; }
+
+    .glossary {
+      display: grid;
+      gap: 0.5rem;
+      margin: 0.75rem 0;
+    }
+    .glossary dt {
+      font-weight: 700;
+      font-size: 0.88rem;
+      color: var(--accent);
+    }
+    .glossary dd {
+      margin: 0 0 0.5rem 0;
+      font-size: 0.9rem;
+      color: var(--muted);
+    }
+
+    .phase {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 0.75rem 1rem;
+      margin: 0.75rem 0;
+      padding: 0.75rem 0;
+      border-bottom: 1px dashed #cbd5e1;
+    }
+    .phase:last-child { border-bottom: none; }
+    .phase-num {
+      font-family: var(--mono);
+      font-weight: 700;
+      color: #fff;
+      background: var(--accent);
+      width: 2rem;
+      height: 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 4px;
+      font-size: 0.85rem;
+    }
+    .phase h4 { font-size: 0.92rem; margin-bottom: 0.25rem; }
+    .phase p { font-size: 0.88rem; color: var(--muted); margin: 0; }
+
+    .tools {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin: 0.75rem 0;
+    }
+    .tool {
+      font-size: 0.8rem;
+      padding: 0.35rem 0.65rem;
+      background: #e2e8f0;
+      border-radius: 4px;
+    }
+    .tool a { color: var(--accent); text-decoration: none; }
+    .tool a:hover { text-decoration: underline; }
+
+    .creative {
+      background: var(--green-soft);
+      border: 1px dashed var(--green);
+      padding: 1rem 1.15rem;
+      border-radius: 4px;
+      margin: 1rem 0;
+      font-size: 0.9rem;
+    }
+    .creative strong { color: var(--green); }
+
+    .ticket {
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      padding: 1rem 1.15rem;
+      margin: 0.85rem 0;
+      background: #fff;
+    }
+    .ticket-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem 1rem;
+      font-size: 0.75rem;
+      font-family: var(--mono);
+      color: var(--muted);
+      margin-bottom: 0.5rem;
+    }
+    .ticket-meta .from { color: var(--accent); font-weight: 600; }
+    .ticket p { margin: 0; font-size: 0.9rem; }
+    .ticket .goal {
+      margin-top: 0.5rem;
+      font-size: 0.82rem;
+      color: var(--muted);
+      font-style: italic;
+    }
+
+    .files {
+      display: grid;
+      gap: 0.5rem;
+      font-family: var(--mono);
+      font-size: 0.85rem;
+    }
+    .files div {
+      background: #1e293b;
+      color: #e2e8f0;
+      padding: 0.5rem 0.75rem;
+      border-radius: 4px;
+    }
+
+    .refs { font-size: 0.85rem; color: var(--muted); }
+    .refs a { color: var(--accent); }
+
+    code {
+      font-family: var(--mono);
+      font-size: 0.85em;
+      background: #e2e8f0;
+      padding: 0.1rem 0.35rem;
+      border-radius: 3px;
+    }
+
+    details.teacher {
+      margin-top: 1rem;
+      font-size: 0.82rem;
+      color: var(--muted);
+    }
+    details.teacher summary { cursor: pointer; color: var(--accent); }
+
+    table.min-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.82rem;
+      margin: 0.75rem 0;
+    }
+    table.min-table th, table.min-table td {
+      border: 1px solid #cbd5e1;
+      padding: 0.4rem 0.55rem;
+      text-align: left;
+    }
+    table.min-table th { background: #e2e8f0; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header class="blueprint-header">
+      <div class="label">SQLite · итоговый проект</div>
+      <h1>SkillPoint: база данных учебного бизнеса</h1>
+      <p>
+        Вы подключаетесь к компании как разработчик данных. Нужно спроектировать хранилище под реальные процессы центра,
+        подготовить демо-данные и ответить на запросы отделов — так, как это делают в маленьком продуктовом IT-отделе.
+      </p>
+    </header>
+
+    <section class="sheet">
+      <h2>О компании и продукте</h2>
+      <p>
+        <strong>SkillPoint</strong> — сеть очных и гибридных учебных центров в нескольких городах России (Казань, Москва, Санкт-Петербург и др.).
+        Компания продаёт не «абстрактное обучение», а <em>конкретные потоки</em>: курс «Python для анализа данных» в филиале на Баумана
+        с 12 марта по 28 апреля, группа до 18 человек, преподаватель Иванова.
+      </p>
+      <p>
+        В <strong>каталоге</strong> десятки программ: программирование, дизайн, soft skills, подготовка к собеседованиям.
+        Каталог живёт годами; <strong>потоки</strong> открываются каждый сезон. Один и тот же курс может идти одновременно в двух городах —
+        это разные потоки с разными датами и преподавателями.
+      </p>
+      <p>
+        Клиент регистрируется в системе (email — главный идентификатор для рассылок и сертификатов), выбирает филиал «домашней» регистрации
+        и записывается на поток. После обучения методист выставляет итоговый балл и закрывает запись. Часть людей бросает обучение —
+        статус фиксируется отдельно, балл может не выставляться.
+      </p>
+      <p>
+        Отдел <strong>маркетинга</strong> параллельно собирает лиды с открытых мероприятий: зимний бесплатный вебинар и летний митап в парке.
+        CRM пока разрозненная: две таблицы регистраций с одинаковыми полями. Руководство хочет понимать, кто приходит на оба события,
+        а кто «остыл» после вебинара.
+      </p>
+
+      <h3>Глоссарий (как говорят внутри компании)</h3>
+      <dl class="glossary">
+        <dt>Филиал (branch)</dt>
+        <dd>Точка с адресом и городом; свои аудитории и расписание.</dd>
+        <dt>Курс (course)</dt>
+        <dd>Строка каталога: название, тематика, длительность, базовая цена до скидок.</dd>
+        <dt>Поток (cohort / run)</dt>
+        <dd>Конкретный набор группы: курс + филиал + даты + преподаватель + лимит мест.</dd>
+        <dt>Запись (enrollment)</dt>
+        <dd>Студент на потоке: когда записался, учится ли сейчас, завершил, ушёл; итоговый балл.</dd>
+        <dt>Лид</dt>
+        <dd>Человек, оставивший контакт на вебинаре или митапе; ещё не обязательно платный студент.</dd>
+      </dl>
+
+      <p class="refs">
+        Синтаксис SQL из курса: 
+        <a href="sql_where_distinct.html">выборка и фильтры</a>,
+        <a href="sql_group_by.html">агрегаты и группы</a>,
+        <a href="sql_sets_subqueries.html">множества и подзапросы</a>.
+      </p>
+    </section>
+
+    <section class="sheet">
+      <h2>Этапы проектирования (как вести работу)</h2>
+      <p>Не обязательно идеальный enterprise-процесс, но логика такая — её ждут на защите проекта.</p>
+
+      <div class="phase">
+        <div class="phase-num">1</div>
+        <div>
+          <h4>Сбор требований</h4>
+          <p>Прочитайте этот документ и блок «Заявки от отделов». Выпишите существительные: кто с кем связан, что нельзя дублировать, что уникально (email, повторная запись на тот же поток).</p>
+        </div>
+      </div>
+      <div class="phase">
+        <div class="phase-num">2</div>
+        <div>
+          <h4>Концептуальная модель (ER)</h4>
+          <p>Сущности, связи, кардинальность (1:1, 1:N, N:M). Без типов SQLite — только смысл. Нарисуйте от руки или в редакторе.</p>
+        </div>
+      </div>
+      <div class="phase">
+        <div class="phase-num">3</div>
+        <div>
+          <h4>Логическая схема</h4>
+          <p>Таблицы, первичные и внешние ключи, UNIQUE, NOT NULL. Решите, где хранить статус записи и балл. Разнесите каталог и потоки — не копируйте название курса в каждую строку расписания.</p>
+        </div>
+      </div>
+      <div class="phase">
+        <div class="phase-num">4</div>
+        <div>
+          <h4>Физическая реализация в SQLite</h4>
+          <p><code>schema.sql</code>, <code>PRAGMA foreign_keys = ON;</code> при отладке. Продумайте индексы под частые отчёты (поиск по email, расписание по датам, списки записей на поток).</p>
+        </div>
+      </div>
+      <div class="phase">
+        <div class="phase-num">5</div>
+        <div>
+          <h4>Наполнение и проверка</h4>
+          <p>Придумайте правдоподобные данные: 3+ города, разные категории курсов, пересекающиеся лиды. Прогоните каждую заявку из раздела ниже — результат должен быть осмысленным, не пустым там, где в данных есть жизнь.</p>
+        </div>
+      </div>
+      <div class="phase">
+        <div class="phase-num">6</div>
+        <div>
+          <h4>Отчёты SQL</h4>
+          <p>Файл <code>reports.sql</code> (или <code>queries.sql</code>): один запрос на заявку, в комментарии — номер тикета R01…</p>
+        </div>
+      </div>
+
+      <h3>Инструменты (выберите удобные)</h3>
+      <div class="tools">
+        <span class="tool"><a href="https://sqlitebrowser.org/" target="_blank" rel="noopener">DB Browser for SQLite</a></span>
+        <span class="tool"><code>sqlite3</code> в терминале</span>
+        <span class="tool"><a href="https://app.diagrams.net/" target="_blank" rel="noopener">draw.io</a></span>
+        <span class="tool"><a href="https://dbdiagram.io/" target="_blank" rel="noopener">dbdiagram.io</a></span>
+        <span class="tool">Mermaid в Markdown</span>
+        <span class="tool">Блокнот + фото схемы</span>
+      </div>
+      <p style="font-size: 0.88rem; color: var(--muted); margin-top: 0.5rem;">
+        ER можно начать на бумаге, затем перенести в draw.io. dbdiagram умеет генерировать SQL из диаграммы — полезно, но проверяйте FK вручную.
+        DB Browser показывает структуру и выполняет скрипты по порядку: schema → seed → reports.
+      </p>
+    </section>
+
+    <section class="sheet">
+      <h2>Что обязательно должно лежать в базе</h2>
+      <p>Точные имена таблиц и полей — ваша архитектура. Смысл — фиксированный.</p>
+      <ul>
+        <li>Филиалы с городом и адресом.</li>
+        <li>Студенты с уникальным email и привязкой к филиалу регистрации.</li>
+        <li>Каталог курсов с категорией, длительностью и базовой ценой.</li>
+        <li>Потоки: курс + филиал + период + преподаватель + лимит мест.</li>
+        <li>Записи на поток: один студент — одна запись на данный поток; статусы жизненного цикла; балл после завершения.</li>
+        <li>Две таблицы маркетинговых регистраций (вебинар и митап) с одинаковым набором столбцов: email, имя, интерес к курсу.</li>
+      </ul>
+
+      <div class="creative">
+        <strong>Креатив (по желанию, + к оценке за инициативу):</strong>
+        добавьте 1–2 сущности, если объясните зачем — например лист ожидания на переполненный поток, промокод, отзыв после курса,
+        таблицу преподавателей вместо текстового поля в потоке, сертификаты с датой выдачи.
+        Не ломайте обязательные заявки R01–R18; расширения — в отдельном комментарии в schema.sql.
+      </div>
+
+      <h3>Нагрузка на демо-стенд</h3>
+      <p>Чтобы отделы получили непустые ответы, заложите минимум: 3 филиала, 10 студентов, 6+ курсов в 3+ категориях, 8 потоков, 20 записей, по 5 лидов на вебинар и митап с частично общими email. Пусть будут завершённые успешные учебы, текущие группы и 1–2 отчисления.</p>
+
+      <h3>Индексы — задача от IT</h3>
+      <p>
+        Тимлид просит минимум <strong>четыре</strong> индекса или UNIQUE-ограничения с пояснением в одном предложении каждый:
+        «какой бизнес-отчёт или правило ускоряет/гарантирует». Пример формулировки: «UNIQUE на email студента — нельзя завести два личных кабинета на одну почту»;
+        «индекс по дате старта потока — ежемесячное расписание филиала».
+      </p>
+    </section>
+
+    <section class="sheet">
+      <h2>Заявки от отделов (ваши SQL-отчёты)</h2>
+      <p>Каждый блок — реальная формулировка заказчика. Реализуйте запрос под вашу схему. В файле пометьте <code>-- R01</code> …</p>
+
+      <div class="ticket">
+        <div class="ticket-meta"><span class="from">Операционный директор</span><span>R01</span></div>
+        <p>«Нужен список всех студентов, которые зарегистрировались через наш <strong>казанский</strong> филиал (именно город филиала, не проживания). Для рассылки по региону.»</p>
+      </div>
+
+      <div class="ticket">
+        <div class="ticket-meta"><span class="from">Методический отдел</span><span>R02</span></div>
+        <p>«Выгрузите записи для ревью качества: все, кто <strong>успешно завершил</strong> обучение с баллом не ниже 80, <em>плюс</em> все, кто в статусе «бросил обучение» — чтобы понять, на каком этапе отвал.»</p>
+        <p class="goal">Подсказка: статусы назовите сами (<code>completed</code> / <code>dropped</code> или по-русски в ENUM-тексте).</p>
+      </div>
+
+      <div class="ticket">
+        <div class="ticket-meta"><span class="from">Коммерция</span><span>R03</span></div>
+        <p>«Покажите каталог курсов, которые мы относим <strong>не</strong> к направлению Design — готовим весеннюю рекламу IT-линейки.»</p>
+      </div>
+
+      <div class="ticket">
+        <div class="ticket-meta"><span class="from">Продуктовый аналитик</span><span>R04</span></div>
+        <p>«Сколько у нас вообще <strong>направлений</strong> (категорий) в каталоге? Список без повторов, для слайда инвесторам.»</p>
+      </div>
+
+      <div class="ticket">
+        <div class="ticket-meta"><span class="from">Расписание филиалов</span><span>R05</span></div>
+        <p>«Дайте все потоки, которые <strong>стартуют в марте 2026</strong> (или другом месяце, который вы заложили в seed — укажите в комментарии). Нужно для печати постеров.»</p>
+      </div>
+
+      <div class="ticket">
+        <div class="ticket-meta"><span class="from">Кросс-продажи</span><span>R06</span></div>
+        <p>«Кто из студентов уже учился на потоках из направлений <strong>Programming</strong> или <strong>Data</strong> (список категорий расширьте/сузьте под свой каталог, минимум две категории)? Им отправим анонс продвинутых программ.»</p>
+      </div>
+
+      <div class="ticket">
+        <div class="ticket-meta"><span class="from">Контент-маркeting</span><span>R07</span></div>
+        <p>«Найдите в каталоге все курсы, в названии которых фигурирует <strong>SQL</strong> — собираем landing под осенний набор.»</p>
+      </div>
+
+      <div class="ticket">
+        <div class="ticket-meta"><span class="from">Руководитель филиала</span><span>R08</span></div>
+        <p>«По каждому потоку: сколько человек уже записано? Хочу видеть загрузку относительно лимита мест (лимит можно вывести отдельным столбцом).»</p>
+      </div>
+
+      <div class="ticket">
+        <div class="ticket-meta"><span class="from">HR партнёров</span><span>R09</span></div>
+        <p>«Средний итоговый балл выпускников по каждому <strong>направлению каталога</strong> — только те, кто реально завершил обучение. Для отчёта партнёрам-работодателям.»</p>
+      </div>
+
+      <div class="ticket">
+        <div class="ticket-meta"><span class="from">Планирование групп</span><span>R10</span></div>
+        <p>«Какие потоки уже набрали <strong>больше трёх</strong> студентов? Малые группы отменяем за неделю до старта.»</p>
+      </div>
+
+      <div class="ticket">
+        <div class="ticket-meta"><span class="from">Финансы</span><span>R11</span></div>
+        <p>«По каждой категории курсов — минимальная и максимальная <strong>базовая цена</strong> в каталоге (до скидок). Для ценовой политики на следующий квартал.»</p>
+      </div>
+
+      <div class="ticket">
+        <div class="ticket-meta"><span class="from">Маркетинг — сводный CRM</span><span>R12</span></div>
+        <p>«Склейте в одну таблицу все регистрации с зимнего вебинара и летнего митапа. Добавьте столбец, откуда лид: webinar или meetup. Дубликаты строк <strong>не убирайте</strong> — нужен полный хронологический учёт.»</p>
+      </div>
+
+      <div class="ticket">
+        <div class="ticket-meta"><span class="from">Маркетинг — лояльность</span><span>R13</span></div>
+        <p>«Email людей, которые регистрировались <strong>и</strong> на вебинар, <strong>и</strong> на митап — им отправим персональное приглашение в центр.»</p>
+      </div>
+
+      <div class="ticket">
+        <div class="ticket-meta"><span class="from">Маркетинг — реактивация</span><span>R14</span></div>
+        <p>«Кто был на вебинаре, но <strong>не</strong> пришёл на митап? Список email для догрева.»</p>
+      </div>
+
+      <div class="ticket">
+        <div class="ticket-meta"><span class="from">Академический директор</span><span>R15</span></div>
+        <p>«Имена студентов, у которых есть хотя бы один завершённый результат <strong>выше среднего балла по всей школе</strong> (по всем завершённым записям). Кандидаты в наставники junior-групп.»</p>
+      </div>
+
+      <div class="ticket">
+        <div class="ticket-meta"><span class="from">Клиентский успех</span><span>R16</span></div>
+        <p>«Студенты, чей <strong>средний</strong> балл по завершённым курсам выше 75 — предложим клуб выпускников.»</p>
+        <p class="goal">Удобно сначала посчитать среднее по студенту во вложенной выборке, затем отфильтровать.</p>
+      </div>
+
+      <div class="ticket">
+        <div class="ticket-meta"><span class="from">Дашборд ректора</span><span>R17</span></div>
+        <p>«Таблица всех потоков с колонкой „сколько записей сейчас“ — без ручного подсчёта в Excel.»</p>
+      </div>
+
+      <div class="ticket">
+        <div class="ticket-meta"><span class="from">Кураторы</span><span>R18</span></div>
+        <p>«Список студентов, которые <strong>сейчас учатся</strong> хотя бы на одном потоке (активная запись). Для еженедельного созвона.»</p>
+      </div>
+
+      <div class="ticket">
+        <div class="ticket-meta"><span class="from">Отдел продаж</span><span>R19</span></div>
+        <p>«Кто зарегистрировался в CRM как студент, но <strong>ни разу не записался</strong> ни на один поток? Пора прозвонить.»</p>
+      </div>
+
+      <div class="ticket">
+        <div class="ticket-meta"><span class="from">Преподавательский совет</span><span>R20</span></div>
+        <p>«По каждой записи с выставленным баллом: где студент набрал <strong>выше среднего именно своей группы</strong> (потока)? Отметим лучших в протоколе.»</p>
+      </div>
+
+      <div class="ticket">
+        <div class="ticket-meta"><span class="from">Награждение</span><span>R21</span></div>
+        <p>«По каждому потоку — лучший итоговый балл среди тех, кто завершил обучение (если несколько потоков — отдельная строка на поток). Для грамот на выпускном.»</p>
+      </div>
+    </section>
+
+    <section class="sheet">
+      <h2>Артефакты проекта</h2>
+      <div class="files">
+        <div>schema.sql — таблицы, ключи, индексы</div>
+        <div>seed.sql — правдоподобные данные SkillPoint</div>
+        <div>reports.sql — ответы R01–R21</div>
+        <div>model.png / model.pdf — ER-диаграмма</div>
+        <div>README.txt — 5–10 предложений: как запустить и что вы придумали сами</div>
+      </div>
+      <p style="margin-top: 1rem; font-size: 0.88rem; color: var(--muted);">
+        Порядок проверки: schema → seed → reports в SQLite без ошибок. Защита: показать диаграмму и один «сложный» отчёт (R15, R20 или R21) словами бизнеса.
+      </p>
+
+      <details class="teacher">
+        <summary>Для самопроверки: связь с темами курса (не для текста отчёта)</summary>
+        <table class="min-table">
+          <tr><th>Тема</th><th>Заявки</th></tr>
+          <tr><td>WHERE, AND/OR, &lt;&gt;</td><td>R01–R03</td></tr>
+          <tr><td>DISTINCT, BETWEEN, IN, LIKE</td><td>R04–R07</td></tr>
+          <tr><td>GROUP BY, AVG, HAVING, MIN/MAX</td><td>R08–R11</td></tr>
+          <tr><td>UNION ALL, INTERSECT, EXCEPT</td><td>R12–R14</td></tr>
+          <tr><td>Подзапросы</td><td>R15–R17</td></tr>
+          <tr><td>EXISTS, коррелированные, MAX</td><td>R18–R21</td></tr>
+        </table>
+      </details>
+    </section>
+  </div>
+</body>
+</html>
