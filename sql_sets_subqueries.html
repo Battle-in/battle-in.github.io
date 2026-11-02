@@ -1,0 +1,840 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SQL Quest — множества и подзапросы</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Outfit:wght@400;600;800&display=swap');
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #070b14;
+      --panel: rgba(18, 26, 42, 0.85);
+      --panel-border: rgba(120, 180, 255, 0.18);
+      --text: #e8eef7;
+      --muted: #8b9bb8;
+      --cyan: #3ee8ff;
+      --magenta: #ff6bcb;
+      --lime: #b8ff5c;
+      --amber: #ffc14d;
+      --violet: #9d7bff;
+      --code-bg: #0d1220;
+      --mono: 'JetBrains Mono', Consolas, monospace;
+      --sans: 'Outfit', system-ui, sans-serif;
+    }
+
+    body {
+      font-family: var(--sans);
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.65;
+      min-height: 100vh;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 80% 50% at 20% -10%, rgba(61, 232, 255, 0.12), transparent),
+        radial-gradient(ellipse 60% 40% at 90% 10%, rgba(255, 107, 203, 0.1), transparent),
+        linear-gradient(rgba(62, 232, 255, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(62, 232, 255, 0.03) 1px, transparent 1px);
+      background-size: auto, auto, 32px 32px, 32px 32px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .page {
+      position: relative;
+      z-index: 1;
+      max-width: 920px;
+      margin: 0 auto;
+      padding: 2rem 1.25rem 4rem;
+    }
+
+    .hero {
+      text-align: center;
+      padding: 2.5rem 1rem 2rem;
+      margin-bottom: 2rem;
+    }
+
+    .hero-kicker {
+      display: inline-block;
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--cyan);
+      border: 1px solid rgba(62, 232, 255, 0.35);
+      padding: 0.35rem 0.85rem;
+      border-radius: 999px;
+      margin-bottom: 1rem;
+      background: rgba(62, 232, 255, 0.06);
+    }
+
+    .hero h1 {
+      font-size: clamp(2rem, 5vw, 2.75rem);
+      font-weight: 800;
+      line-height: 1.15;
+      background: linear-gradient(120deg, var(--cyan), var(--magenta) 55%, var(--lime));
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      margin-bottom: 0.75rem;
+    }
+
+    .hero p {
+      color: var(--muted);
+      max-width: 36rem;
+      margin: 0 auto;
+      font-size: 1.05rem;
+    }
+
+    .xp-bar {
+      display: flex;
+      gap: 0.5rem;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-top: 1.5rem;
+    }
+
+    .xp-chip {
+      font-size: 0.8rem;
+      padding: 0.35rem 0.75rem;
+      border-radius: 8px;
+      background: var(--panel);
+      border: 1px solid var(--panel-border);
+      color: var(--muted);
+    }
+
+    .xp-chip strong { color: var(--text); }
+
+    .glass {
+      background: var(--panel);
+      backdrop-filter: blur(12px);
+      border: 1px solid var(--panel-border);
+      border-radius: 16px;
+      padding: 1.5rem 1.75rem;
+      margin-bottom: 1.75rem;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
+    }
+
+    .glass h2 {
+      font-size: 1.35rem;
+      font-weight: 800;
+      margin-bottom: 0.75rem;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+
+    .level-num {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 2rem;
+      height: 2rem;
+      border-radius: 10px;
+      font-size: 0.9rem;
+      font-weight: 800;
+      flex-shrink: 0;
+    }
+
+    .level-num.union { background: rgba(255, 193, 77, 0.2); color: var(--amber); }
+    .level-num.sub { background: rgba(62, 232, 255, 0.15); color: var(--cyan); }
+    .level-num.exists { background: rgba(255, 107, 203, 0.15); color: var(--magenta); }
+    .level-num.corr { background: rgba(184, 255, 92, 0.12); color: var(--lime); }
+
+    .glass h3 {
+      font-size: 1rem;
+      color: var(--violet);
+      margin: 1.25rem 0 0.5rem;
+    }
+
+    .toc-list {
+      list-style: none;
+      display: grid;
+      gap: 0.5rem;
+    }
+
+    .toc-list a {
+      color: var(--cyan);
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    .toc-list a:hover { text-decoration: underline; }
+
+    .task {
+      background: rgba(255, 193, 77, 0.06);
+      border: 1px solid rgba(255, 193, 77, 0.25);
+      border-radius: 12px;
+      padding: 1rem 1.15rem;
+      margin: 1rem 0;
+    }
+
+    .task-head {
+      font-weight: 700;
+      color: var(--amber);
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 0.5rem;
+    }
+
+    pre {
+      background: var(--code-bg);
+      border: 1px solid rgba(62, 232, 255, 0.12);
+      border-radius: 10px;
+      padding: 1rem 1.15rem;
+      overflow-x: auto;
+      margin: 0.75rem 0;
+      font-family: var(--mono);
+      font-size: 0.82rem;
+      line-height: 1.55;
+      color: #c5d4e8;
+    }
+
+    pre .kw { color: var(--magenta); }
+    pre .fn { color: var(--cyan); }
+
+    .inline {
+      font-family: var(--mono);
+      font-size: 0.88em;
+      background: rgba(157, 123, 255, 0.15);
+      color: var(--violet);
+      padding: 0.15rem 0.45rem;
+      border-radius: 4px;
+    }
+
+    .hint {
+      border-left: 3px solid var(--cyan);
+      padding: 0.75rem 1rem;
+      margin: 0.75rem 0;
+      background: rgba(62, 232, 255, 0.05);
+      border-radius: 0 8px 8px 0;
+      font-size: 0.95rem;
+      color: var(--muted);
+    }
+
+    .hint strong { color: var(--text); }
+
+    .warn {
+      border-left: 3px solid var(--amber);
+      background: rgba(255, 193, 77, 0.06);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+      margin: 0.75rem 0;
+    }
+
+    th, td {
+      border: 1px solid rgba(120, 180, 255, 0.15);
+      padding: 0.5rem 0.65rem;
+      text-align: left;
+    }
+
+    th {
+      background: rgba(62, 232, 255, 0.1);
+      color: var(--cyan);
+      font-weight: 600;
+    }
+
+    tr:nth-child(even) td { background: rgba(255, 255, 255, 0.02); }
+
+    .btn {
+      font-family: var(--sans);
+      font-weight: 600;
+      font-size: 0.9rem;
+      cursor: pointer;
+      border: none;
+      padding: 0.55rem 1.15rem;
+      border-radius: 10px;
+      color: var(--bg);
+      background: linear-gradient(135deg, var(--cyan), var(--violet));
+      transition: transform 0.15s, box-shadow 0.15s;
+      margin: 0.35rem 0;
+    }
+
+    .btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 24px rgba(62, 232, 255, 0.25);
+    }
+
+    .solution {
+      display: none;
+      margin-top: 0.75rem;
+      padding-top: 0.75rem;
+      border-top: 1px dashed rgba(120, 180, 255, 0.2);
+    }
+
+    .solution.open { display: block; }
+
+    .result-box {
+      background: rgba(184, 255, 92, 0.06);
+      border: 1px solid rgba(184, 255, 92, 0.2);
+      border-radius: 10px;
+      padding: 0.85rem 1rem;
+      margin-top: 0.75rem;
+    }
+
+    .result-box .label {
+      font-weight: 700;
+      color: var(--lime);
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 0.5rem;
+    }
+
+    ul, ol { margin: 0.5rem 0 0.5rem 1.25rem; }
+    li { margin-bottom: 0.35rem; }
+
+    .compare-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.75rem;
+      margin: 0.75rem 0;
+    }
+
+    @media (max-width: 640px) {
+      .compare-grid { grid-template-columns: 1fr; }
+    }
+
+    .compare-card {
+      background: var(--code-bg);
+      border-radius: 10px;
+      padding: 0.85rem;
+      border: 1px solid var(--panel-border);
+      font-size: 0.9rem;
+    }
+
+    .compare-card h4 {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 0.5rem;
+    }
+
+    .compare-card.union h4 { color: var(--amber); }
+    .compare-card.all h4 { color: var(--magenta); }
+
+    footer.note {
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.85rem;
+      margin-top: 2rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <header class="hero">
+      <span class="hero-kicker">SQLite · side quest</span>
+      <h1>Множества &amp; подзапросы</h1>
+      <p>Объединяй результаты запросов, заглядывай внутрь других SELECT и связывай внешний мир с внутренним — как в настоящем RPG, только вместо меча у тебя точка с запятой.</p>
+      <div class="xp-bar">
+        <span class="xp-chip"><strong>UNION</strong> / ALL</span>
+        <span class="xp-chip"><strong>INTERSECT</strong> / EXCEPT</span>
+        <span class="xp-chip">подзапросы в <strong>WHERE · FROM · SELECT</strong></span>
+        <span class="xp-chip"><strong>EXISTS · ANY · ALL</strong></span>
+        <span class="xp-chip">коррелированные</span>
+      </div>
+    </header>
+
+    <section class="glass">
+      <h2><span class="level-num union">0</span> Лобби: база данных</h2>
+      <p>Сюжет: платформа <strong>DevQuest</strong> — хакатоны и учебные модули. Сначала создай таблицы и залей данные (скопируй в SQLite целиком).</p>
+
+      <h3>Хакатоны (для операций над множествами)</h3>
+      <pre><code>CREATE TABLE hackathon_2024 (
+    nickname TEXT NOT NULL,
+    team TEXT NOT NULL,
+    score INTEGER NOT NULL
+);
+
+CREATE TABLE hackathon_2025 (
+    nickname TEXT NOT NULL,
+    team TEXT NOT NULL,
+    score INTEGER NOT NULL
+);
+
+INSERT INTO hackathon_2024 (nickname, team, score) VALUES
+('pixel_fox', 'Alpha', 87),
+('code_ninja', 'Alpha', 92),
+('byte_bard', 'Beta', 78),
+('stack_overflow', 'Beta', 81);
+
+INSERT INTO hackathon_2025 (nickname, team, score) VALUES
+('pixel_fox', 'Alpha', 90),
+('code_ninja', 'Delta', 85),
+('byte_bard', 'Beta', 80),
+('rust_ace', 'Gamma', 88);</code></pre>
+
+      <h3>Учебный прогресс (для подзапросов)</h3>
+      <pre><code>CREATE TABLE learners (
+    id INTEGER PRIMARY KEY,
+    name TEXT NOT NULL,
+    city TEXT NOT NULL
+);
+
+CREATE TABLE modules (
+    id INTEGER PRIMARY KEY,
+    title TEXT NOT NULL,
+    difficulty INTEGER NOT NULL
+);
+
+CREATE TABLE progress (
+    learner_id INTEGER NOT NULL,
+    module_id INTEGER NOT NULL,
+    score INTEGER NOT NULL,
+    completed INTEGER NOT NULL
+);
+
+INSERT INTO learners (id, name, city) VALUES
+(1, 'Аня', 'Казань'),
+(2, 'Борис', 'Москва'),
+(3, 'Вика', 'Москва'),
+(4, 'Глеб', 'Казань'),
+(5, 'Диана', 'Санкт-Петербург');
+
+INSERT INTO modules (id, title, difficulty) VALUES
+(1, 'SQL Basics', 2),
+(2, 'JOIN Quest', 3),
+(3, 'Subquery Dungeon', 4),
+(4, 'Window Wizard', 5),
+(5, 'NoSQL Raid', 3);
+
+INSERT INTO progress (learner_id, module_id, score, completed) VALUES
+(1, 1, 85, 1), (1, 2, 70, 1), (1, 3, 55, 0),
+(2, 1, 90, 1), (2, 3, 88, 1), (2, 4, 72, 1),
+(3, 1, 78, 1), (3, 2, 82, 1),
+(4, 3, 91, 1), (4, 4, 89, 1), (4, 5, 60, 0),
+(5, 2, 95, 1), (5, 5, 88, 1);</code></pre>
+
+      <button class="btn" type="button" onclick="toggle('sol0')">Справка: кто есть кто</button>
+      <div id="sol0" class="solution">
+        <div class="result-box">
+          <div class="label">Никнеймы</div>
+          <p><span class="inline">stack_overflow</span> — только в 2024. <span class="inline">rust_ace</span> — только в 2025. Остальные четверо участвовали в обоих годах.</p>
+        </div>
+      </div>
+
+      <nav style="margin-top: 1.25rem;">
+        <ul class="toc-list">
+          <li><a href="#union">Уровень 1 — UNION / UNION ALL</a></li>
+          <li><a href="#intersect">Уровень 2 — INTERSECT / EXCEPT</a></li>
+          <li><a href="#where-sub">Уровень 3 — подзапрос в WHERE</a></li>
+          <li><a href="#from-sub">Уровень 4 — подзапрос в FROM</a></li>
+          <li><a href="#select-sub">Уровень 5 — подзапрос в SELECT</a></li>
+          <li><a href="#exists">Уровень 6 — EXISTS, ANY, ALL</a></li>
+          <li><a href="#correlated">Уровень 7 — коррелированные подзапросы</a></li>
+          <li><a href="#boss">Босс-файт</a></li>
+        </ul>
+      </nav>
+    </section>
+
+    <section class="glass" id="union">
+      <h2><span class="level-num union">1</span> UNION и UNION ALL</h2>
+      <p>Оба операнда должны возвращать <strong>одинаковое число столбцов</strong> и совместимые типы. По умолчанию <span class="inline">UNION</span> убирает дубликаты строк; <span class="inline">UNION ALL</span> — оставляет все.</p>
+
+      <div class="compare-grid">
+        <div class="compare-card union">
+          <h4>UNION</h4>
+          <p>Объединение как множество: повторяющиеся строки схлопываются.</p>
+        </div>
+        <div class="compare-card all">
+          <h4>UNION ALL</h4>
+          <p>«Склеить списки»: быстрее, если дубликаты нужны или не страшны.</p>
+        </div>
+      </div>
+
+      <div class="task">
+        <div class="task-head">Задание 1.1</div>
+        <p>Выведи все пары <span class="inline">(nickname, score)</span> из обоих хакатонов одним списком <strong>без</strong> повторяющихся строк. Подпиши столбец года не нужно — только nickname и score.</p>
+      </div>
+      <button class="btn" type="button" onclick="toggle('sol1')">Расшифровка</button>
+      <div id="sol1" class="solution">
+        <pre><code>SELECT nickname, score FROM hackathon_2024
+UNION
+SELECT nickname, score FROM hackathon_2025
+ORDER BY nickname, score;</code></pre>
+        <p class="hint">Строка <span class="inline">pixel_fox, 87</span> и <span class="inline">pixel_fox, 90</span> — разные строки, обе останутся. Если бы score совпадал, UNION оставил бы одну.</p>
+      </div>
+
+      <div class="task">
+        <div class="task-head">Задание 1.2</div>
+        <p>Тот же запрос, но через <span class="inline">UNION ALL</span>. Сколько строк вернётся? Сравни с заданием 1.1.</p>
+      </div>
+      <button class="btn" type="button" onclick="toggle('sol2')">Расшифровка</button>
+      <div id="sol2" class="solution">
+        <pre><code>SELECT nickname, score FROM hackathon_2024
+UNION ALL
+SELECT nickname, score FROM hackathon_2025;</code></pre>
+        <div class="result-box">
+          <div class="label">Ответ</div>
+          <p><strong>8 строк</strong> (4 + 4). UNION ALL не удаляет дубликаты — всегда полное «склеивание».</p>
+        </div>
+      </div>
+
+      <div class="task">
+        <div class="task-head">Задание 1.3</div>
+        <p>Собери общий рейтинг: <span class="inline">nickname</span>, <span class="inline">team</span>, <span class="inline">score</span>, и литерал <span class="inline">'2024'</span> или <span class="inline">'2025'</span> как <span class="inline">season</span>. Отсортируй по score по убыванию.</p>
+      </div>
+      <button class="btn" type="button" onclick="toggle('sol3')">Расшифровка</button>
+      <div id="sol3" class="solution">
+        <pre><code>SELECT nickname, team, score, '2024' AS season FROM hackathon_2024
+UNION ALL
+SELECT nickname, team, score, '2025' AS season FROM hackathon_2025
+ORDER BY score DESC;</code></pre>
+      </div>
+    </section>
+
+    <section class="glass" id="intersect">
+      <h2><span class="level-num union">2</span> INTERSECT и EXCEPT</h2>
+      <p><span class="inline">INTERSECT</span> — строки, которые есть в <em>обоих</em> результатах. <span class="inline">EXCEPT</span> — строки из первого запроса, которых нет во втором (в Oracle часто пишут <span class="inline">MINUS</span>, в SQLite — <span class="inline">EXCEPT</span>).</p>
+      <div class="hint warn"><strong>SQLite:</strong> INTERSECT и EXCEPT поддерживаются; порядок столбцов и типов снова должен совпадать.</div>
+
+      <div class="task">
+        <div class="task-head">Задание 2.1</div>
+        <p>Никнеймы участников, которые были <strong>и в 2024, и в 2025</strong> (достаточно одного столбца <span class="inline">nickname</span>).</p>
+      </div>
+      <button class="btn" type="button" onclick="toggle('sol4')">Расшифровка</button>
+      <div id="sol4" class="solution">
+        <pre><code>SELECT nickname FROM hackathon_2024
+INTERSECT
+SELECT nickname FROM hackathon_2025
+ORDER BY nickname;</code></pre>
+        <div class="result-box">
+          <div class="label">Результат</div>
+          <p>byte_bard, code_ninja, pixel_fox (3 строки)</p>
+        </div>
+      </div>
+
+      <div class="task">
+        <div class="task-head">Задание 2.2</div>
+        <p>Никнеймы, которые были в 2024, но <strong>не</strong> участвовали в 2025.</p>
+      </div>
+      <button class="btn" type="button" onclick="toggle('sol5')">Расшифровка</button>
+      <div id="sol5" class="solution">
+        <pre><code>SELECT nickname FROM hackathon_2024
+EXCEPT
+SELECT nickname FROM hackathon_2025;</code></pre>
+        <div class="result-box">
+          <div class="label">Результат</div>
+          <p><strong>stack_overflow</strong></p>
+        </div>
+      </div>
+
+      <div class="task">
+        <div class="task-head">Задание 2.3</div>
+        <p>Команды (<span class="inline">team</span>), которые встречались в 2025, но не фигурировали в 2024 (сравни только столбец team).</p>
+      </div>
+      <button class="btn" type="button" onclick="toggle('sol6')">Расшифровка</button>
+      <div id="sol6" class="solution">
+        <pre><code>SELECT team FROM hackathon_2025
+EXCEPT
+SELECT team FROM hackathon_2024
+ORDER BY team;</code></pre>
+        <div class="result-box">
+          <div class="label">Результат</div>
+          <p>Delta, Gamma</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="glass" id="where-sub">
+      <h2><span class="level-num sub">3</span> Подзапрос в WHERE</h2>
+      <p>Подзапрос в скобках возвращает одно значение, список или таблицу — и внешний запрос использует его в условии.</p>
+
+      <div class="task">
+        <div class="task-head">Задание 3.1 — скalar</div>
+        <p>Ученики, у которых есть попытка по модулю «Subquery Dungeon» (id = 3) с баллом <strong>выше среднего</strong> по этому модулю.</p>
+      </div>
+      <div class="hint">Сначала мысленно: средний балл по module_id = 3 для score (55, 88, 91) → 78.</div>
+      <button class="btn" type="button" onclick="toggle('sol7')">Расшифровка</button>
+      <div id="sol7" class="solution">
+        <pre><code>SELECT l.name, p.score
+FROM learners l
+JOIN progress p ON p.learner_id = l.id
+WHERE p.module_id = 3
+  AND p.score > (
+      SELECT AVG(score) FROM progress WHERE module_id = 3
+  );</code></pre>
+        <div class="result-box">
+          <div class="label">Результат</div>
+          <table>
+            <tr><th>name</th><th>score</th></tr>
+            <tr><td>Борис</td><td>88</td></tr>
+            <tr><td>Глеб</td><td>91</td></tr>
+          </table>
+        </div>
+      </div>
+
+      <div class="task">
+        <div class="task-head">Задание 3.2 — IN</div>
+        <p>Имена учеников из <strong>Москвы</strong>, которые сдавали хотя бы один модуль с <span class="inline">difficulty &gt;= 4</span>.</p>
+      </div>
+      <button class="btn" type="button" onclick="toggle('sol8')">Расшифровка</button>
+      <div id="sol8" class="solution">
+        <pre><code>SELECT name
+FROM learners
+WHERE city = 'Москва'
+  AND id IN (
+      SELECT p.learner_id
+      FROM progress p
+      JOIN modules m ON m.id = p.module_id
+      WHERE m.difficulty >= 4
+  );</code></pre>
+        <div class="result-box">
+          <div class="label">Результат</div>
+          <p>Борис (модуль 3 и 4), Вика — только модули 1–2, не попадает. Итого: <strong>Борис</strong>.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="glass" id="from-sub">
+      <h2><span class="level-num sub">4</span> Подзапрос в FROM</h2>
+      <p>Вложенный SELECT создаёт <strong>временную таблицу</strong> (производную). Ей нужен алиас.</p>
+
+      <div class="task">
+        <div class="task-head">Задание 4.1</div>
+        <p>Для каждого ученика — средний балл по всем его попыткам. Выведи только тех, у кого средний балл &gt; 80. Колонки: <span class="inline">name</span>, <span class="inline">avg_score</span>.</p>
+      </div>
+      <button class="btn" type="button" onclick="toggle('sol9')">Расшифровка</button>
+      <div id="sol9" class="solution">
+        <pre><code>SELECT l.name, stats.avg_score
+FROM learners l
+JOIN (
+    SELECT learner_id, ROUND(AVG(score), 2) AS avg_score
+    FROM progress
+    GROUP BY learner_id
+) AS stats ON stats.learner_id = l.id
+WHERE stats.avg_score > 80
+ORDER BY stats.avg_score DESC;</code></pre>
+        <div class="result-box">
+          <div class="label">Результат (avg_score &gt; 80)</div>
+          <table>
+            <tr><th>name</th><th>avg_score</th></tr>
+            <tr><td>Диана</td><td>91.5</td></tr>
+            <tr><td>Борис</td><td>83.33</td></tr>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section class="glass" id="select-sub">
+      <h2><span class="level-num sub">5</span> Подзапрос в SELECT</h2>
+      <p>Скalar-подзапрос в списке SELECT должен возвращать <strong>одно значение</strong> на каждую строку внешнего запроса (или коррелироваться — см. уровень 7).</p>
+
+      <div class="task">
+        <div class="task-head">Задание 5.1</div>
+        <p>Для каждого модуля выведи <span class="inline">title</span> и общее число записей в <span class="inline">progress</span> по этому модулю (подзапрос с <span class="inline">COUNT(*)</span>).</p>
+      </div>
+      <button class="btn" type="button" onclick="toggle('sol10')">Расшифровка</button>
+      <div id="sol10" class="solution">
+        <pre><code>SELECT m.title,
+       (SELECT COUNT(*) FROM progress p WHERE p.module_id = m.id) AS attempts
+FROM modules m
+ORDER BY attempts DESC;</code></pre>
+      </div>
+
+      <div class="task">
+        <div class="task-head">Задание 5.2</div>
+        <p>Для каждого города — число учеников (простой подзапрос не нужен; повтори через подзапрос в SELECT для тренировки: список городов и <span class="inline">(SELECT COUNT(*) FROM learners l2 WHERE l2.city = l1.city)</span>).</p>
+      </div>
+      <button class="btn" type="button" onclick="toggle('sol11')">Расшифровка</button>
+      <div id="sol11" class="solution">
+        <pre><code>SELECT DISTINCT city,
+       (SELECT COUNT(*) FROM learners l2 WHERE l2.city = l1.city) AS cnt
+FROM learners l1
+ORDER BY cnt DESC, city;</code></pre>
+        <p class="hint">Здесь подзапрос уже <strong>коррелирован</strong> (<span class="inline">l1.city</span> из внешнего запроса). На уровне 7 разберём это глубже.</p>
+      </div>
+    </section>
+
+    <section class="glass" id="exists">
+      <h2><span class="level-num exists">6</span> EXISTS, ANY, ALL</h2>
+      <p><span class="inline">EXISTS</span> проверяет, вернул ли подзапрос хотя бы одну строку (часто внутри — <span class="inline">SELECT 1</span>). <span class="inline">ANY</span> / <span class="inline">ALL</span> сравнивают значение с набором из подзапроса.</p>
+
+      <div class="task">
+        <div class="task-head">Задание 6.1 — EXISTS</div>
+        <p>Ученики, у которых есть <strong>хотя бы одна</strong> завершённая попытка (<span class="inline">completed = 1</span>).</p>
+      </div>
+      <button class="btn" type="button" onclick="toggle('sol12')">Расшифровка</button>
+      <div id="sol12" class="solution">
+        <pre><code>SELECT l.name
+FROM learners l
+WHERE EXISTS (
+    SELECT 1 FROM progress p
+    WHERE p.learner_id = l.id AND p.completed = 1
+)
+ORDER BY l.name;</code></pre>
+        <p class="hint">Все пять учеников имеют completed = 1 хотя бы в одной строке, кроме проверки: Аня имеет module 3 с completed 0, но 1 и 2 — с 1. Все попадают.</p>
+      </div>
+
+      <div class="task">
+        <div class="task-head">Задание 6.2 — NOT EXISTS</div>
+        <p>Ученики, которые <strong>ни разу</strong> не открывали модуль «Window Wizard» (id = 4).</p>
+      </div>
+      <button class="btn" type="button" onclick="toggle('sol13')">Расшифровка</button>
+      <div id="sol13" class="solution">
+        <pre><code>SELECT name
+FROM learners l
+WHERE NOT EXISTS (
+    SELECT 1 FROM progress p
+    WHERE p.learner_id = l.id AND p.module_id = 4
+);</code></pre>
+        <div class="result-box">
+          <div class="label">Результат</div>
+          <p>Аня, Вика, Диана</p>
+        </div>
+      </div>
+
+      <div class="task">
+        <div class="task-head">Задание 6.3 — ALL</div>
+        <p>Найди попытки по модулю 1, где балл <strong>строго больше</strong>, чем у <em>всех остальных</em> попыток по модулю 1 (классический «рекорд побил всех»).</p>
+      </div>
+      <button class="btn" type="button" onclick="toggle('sol14')">Расшифровка</button>
+      <div id="sol14" class="solution">
+        <pre><code>SELECT p.learner_id, p.score
+FROM progress p
+WHERE p.module_id = 1
+  AND p.score > ALL (
+      SELECT score FROM progress
+      WHERE module_id = 1 AND learner_id != p.learner_id
+  );</code></pre>
+        <div class="result-box">
+          <div class="label">Результат</div>
+          <p>learner_id = 2 (Борис), score = 90</p>
+        </div>
+      </div>
+
+      <div class="task">
+        <div class="task-head">Задание 6.4 — ANY</div>
+        <p>Модули, для которых существует попытка с баллом 95 (хотя бы одна строка в progress с таким score).</p>
+      </div>
+      <button class="btn" type="button" onclick="toggle('sol15')">Расшифровка</button>
+      <div id="sol15" class="solution">
+        <pre><code>SELECT title
+FROM modules m
+WHERE 95 = ANY (SELECT score FROM progress WHERE module_id = m.id);</code></pre>
+        <div class="result-box">
+          <div class="label">Результат</div>
+          <p>JOIN Quest (Диана набрала 95)</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="glass" id="correlated">
+      <h2><span class="level-num corr">7</span> Коррелированные подзапросы</h2>
+      <p>Внутренний запрос ссылается на строку внешнего (<span class="inline">l.id</span>, <span class="inline">m.id</span>…). Для каждой строки снаружи подзапрос выполняется заново.</p>
+
+      <div class="task">
+        <div class="task-head">Задание 7.1</div>
+        <p>Для каждого ученика выведи имя и его <strong>лучший</strong> балл среди всех модулей (коррелированный подзапрос с <span class="inline">MAX</span> в SELECT).</p>
+      </div>
+      <button class="btn" type="button" onclick="toggle('sol16')">Расшифровка</button>
+      <div id="sol16" class="solution">
+        <pre><code>SELECT l.name,
+       (SELECT MAX(p.score) FROM progress p WHERE p.learner_id = l.id) AS best_score
+FROM learners l
+ORDER BY best_score DESC;</code></pre>
+      </div>
+
+      <div class="task">
+        <div class="task-head">Задание 7.2</div>
+        <p>Строки из <span class="inline">progress</span>, где балл <strong>выше среднего по этому же модулю</strong> (сравнение с коррелированным AVG).</p>
+      </div>
+      <button class="btn" type="button" onclick="toggle('sol17')">Расшифровка</button>
+      <div id="sol17" class="solution">
+        <pre><code>SELECT p.learner_id, p.module_id, p.score
+FROM progress p
+WHERE p.score > (
+    SELECT AVG(p2.score)
+    FROM progress p2
+    WHERE p2.module_id = p.module_id
+)
+ORDER BY p.module_id, p.score DESC;</code></pre>
+      </div>
+
+      <div class="task">
+        <div class="task-head">Задание 7.3</div>
+        <p>Ученики, у которых <strong>нет</strong> ни одной попытки с баллом ниже 70 (коррелированный NOT EXISTS на «плохие» оценки).</p>
+      </div>
+      <button class="btn" type="button" onclick="toggle('sol18')">Расшифровка</button>
+      <div id="sol18" class="solution">
+        <pre><code>SELECT l.name
+FROM learners l
+WHERE NOT EXISTS (
+    SELECT 1 FROM progress p
+    WHERE p.learner_id = l.id AND p.score &lt; 70
+)
+ORDER BY l.name;</code></pre>
+        <div class="result-box">
+          <div class="label">Результат</div>
+          <p>Борис, Вика, Глеб, Диана (у Ани есть 55 по модулю 3)</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="glass" id="boss">
+      <h2><span class="level-num corr">★</span> Босс-файт</h2>
+      <div class="task">
+        <div class="task-head">Финальное задание</div>
+        <p>Один запрос: никнеймы, которые участвовали в обоих хакатонах <strong>и</strong> хотя бы раз набрали score ≥ 90 в любом году. Подсказка: комбинируй INTERSECT и подзапрос / UNION ALL с фильтром.</p>
+      </div>
+      <button class="btn" type="button" onclick="toggle('sol19')">Расшифровка</button>
+      <div id="sol19" class="solution">
+        <pre><code>SELECT nickname
+FROM hackathon_2024
+WHERE nickname IN (SELECT nickname FROM hackathon_2025)
+  AND (
+      score >= 90
+      OR EXISTS (
+          SELECT 1 FROM hackathon_2025 h5
+          WHERE h5.nickname = hackathon_2024.nickname
+            AND h5.score >= 90
+      )
+  );</code></pre>
+        <p class="hint">Среди участников обоих лет (pixel_fox, code_ninja, byte_bard) балл ≥ 90 хотя бы раз дают code_ninja (92 в 2024) и pixel_fox (90 в 2025).</p>
+        <div class="result-box">
+          <div class="label">Итог</div>
+          <p><strong>code_ninja</strong>, <strong>pixel_fox</strong></p>
+        </div>
+      </div>
+
+      <h3>Контрольные вопросы</h3>
+      <ol>
+        <li>Чем UNION отличается от UNION ALL?</li>
+        <li>Можно ли заменить <span class="inline">IN (подзапрос)</span> на <span class="inline">EXISTS</span>?</li>
+        <li>Когда подзапрос в FROM удобнее, чем JOIN?</li>
+        <li>Что делает коррелированный подзапрос особенным?</li>
+      </ol>
+      <button class="btn" type="button" onclick="toggle('solQuiz')">Ответы</button>
+      <div id="solQuiz" class="solution">
+        <ol>
+          <li>UNION удаляет дубликаты строк в объединённом результате; UNION ALL — нет.</li>
+          <li>Часто да (семантика «есть совпадение»), но синтаксис и NULL могут вести себя по-разному — проверяй на данных.</li>
+          <li>Когда нужна промежуточная агрегация или «снимок» логики, который потом присоединяют.</li>
+          <li>Внутренний запрос использует столбцы внешней строки и пересчитывается для каждой такой строки.</li>
+        </ol>
+      </div>
+    </section>
+
+    <p class="note">DevQuest · SQLite · удачи на экзамене</p>
+  </div>
+
+  <script>
+    function toggle(id) {
+      document.getElementById(id).classList.toggle('open');
+    }
+  </script>
+</body>
+</html>

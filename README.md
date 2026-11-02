@@ -20,6 +20,7 @@
 | [hr_platform_sql.html](./hr_platform_sql.html) | Проектирование БД HR-платформы (связи 1:1, N:1, N:M) | Задача на ER/схему |
 | [sql_where_distinct.html](./sql_where_distinct.html) | `WHERE`, `DISTINCT`, `BETWEEN`, `IN`, `LIKE` | Практика с решениями |
 | [sql_group_by.html](./sql_group_by.html) | `GROUP BY`, агрегаты, `HAVING` | Практика с решениями |
+| [sql_sets_subqueries.html](./sql_sets_subqueries.html) | `UNION`, `INTERSECT`, `EXCEPT`, подзапросы, `EXISTS`, `ANY`, `ALL` | Практика с решениями |
 | [pizza.html](./pizza.html) | Декомпозиция и сложная бизнес-логика (калькулятор доставки) | Задача на программирование |
 | [oop-practice.html](./oop-practice.html) | ООП в Python: классы, методы, задания | Теория + практика |
 
@@ -27,7 +28,8 @@
 
 1. **Фильтрация и выборка** — [sql_where_distinct.html](./sql_where_distinct.html): условия, уникальные значения, диапазоны и шаблоны.
 2. **Группировка** — [sql_group_by.html](./sql_group_by.html): агрегатные функции и фильтрация групп.
-3. **Проектирование** — [hr_platform_sql.html](./hr_platform_sql.html): перенос предметной области в таблицы и связи.
+3. **Множества и подзапросы** — [sql_sets_subqueries.html](./sql_sets_subqueries.html): объединение результатов и вложенные SELECT.
+4. **Проектирование** — [hr_platform_sql.html](./hr_platform_sql.html): перенос предметной области в таблицы и связи.
 
 Порядок можно менять: страница по `GROUP BY` использует свою таблицу `employees` и не зависит от `books`.
 
@@ -59,6 +61,7 @@ database_tasks/
 ├── hr_platform_sql.html
 ├── sql_where_distinct.html
 ├── sql_group_by.html
+├── sql_sets_subqueries.html
 ├── pizza.html
 └── oop-practice.html
 ```
