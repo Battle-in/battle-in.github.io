@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SQLite: ограничение CHECK</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', Tahoma, sans-serif;
+      line-height: 1.6;
+      color: #2c3e50;
+      background: linear-gradient(160deg, #e8f4f8 0%, #f5f0e8 100%);
+      padding: 1.25rem;
+    }
+    .wrap {
+      max-width: 720px;
+      margin: 0 auto;
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.08);
+      padding: 1.75rem 2rem 2.5rem;
+    }
+    h1 {
+      font-size: 1.65rem;
+      color: #0d6e6e;
+      margin-bottom: 0.35rem;
+    }
+    .sub {
+      color: #6c757d;
+      font-size: 0.92rem;
+      margin-bottom: 1.5rem;
+    }
+    h2 {
+      font-size: 1.05rem;
+      color: #0d6e6e;
+      margin: 1.5rem 0 0.65rem;
+      padding-bottom: 0.25rem;
+      border-bottom: 2px solid #b8e0e0;
+    }
+    p, li { font-size: 0.92rem; margin-bottom: 0.5rem; }
+    ul { margin-left: 1.25rem; }
+    pre {
+      background: #1e2a32;
+      color: #e8eef2;
+      padding: 0.85rem 1rem;
+      border-radius: 8px;
+      overflow-x: auto;
+      font-size: 0.82rem;
+      line-height: 1.5;
+      margin: 0.6rem 0 0.85rem;
+      font-family: Consolas, Monaco, monospace;
+    }
+    .inline {
+      font-family: Consolas, Monaco, monospace;
+      font-size: 0.88em;
+      background: #eef6f6;
+      color: #0d6e6e;
+      padding: 0.12rem 0.4rem;
+      border-radius: 4px;
+    }
+    .note {
+      background: #fff8e1;
+      border-left: 4px solid #ffc107;
+      padding: 0.65rem 0.85rem;
+      border-radius: 0 6px 6px 0;
+      font-size: 0.88rem;
+      margin: 0.75rem 0;
+    }
+    .ok {
+      background: #e8f5e9;
+      border-left: 4px solid #43a047;
+      padding: 0.65rem 0.85rem;
+      border-radius: 0 6px 6px 0;
+      font-size: 0.88rem;
+      margin: 0.75rem 0;
+    }
+    .ex-title {
+      font-weight: 600;
+      font-size: 0.9rem;
+      color: #495057;
+      margin-top: 0.85rem;
+    }
+    .tag {
+      display: inline-block;
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      background: #0d6e6e;
+      color: #fff;
+      padding: 0.15rem 0.45rem;
+      border-radius: 4px;
+      margin-right: 0.35rem;
+      vertical-align: middle;
+    }
+    footer {
+      margin-top: 1.5rem;
+      font-size: 0.82rem;
+      color: #868e96;
+    }
+    footer a { color: #0d6e6e; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1><span class="inline">CHECK</span> в SQLite</h1>
+    <p class="sub">Краткая шпаргалка: как задавать правила для данных прямо в таблице.</p>
+
+    <p>
+      <span class="inline">CHECK</span> — ограничение, которое проверяет условие при <strong>INSERT</strong> и <strong>UPDATE</strong>.
+      Если выражение ложно, SQLite отклоняет операцию. Это способ не дать в базу «балл 150» или статус «maybe».
+    </p>
+
+    <div class="note">
+      Условие пишется в скобках после слова <span class="inline">CHECK</span>. Можно на уровне столбца или всей таблицы.
+      Включите FK при отладке: <span class="inline">PRAGMA foreign_keys = ON;</span>
+    </div>
+
+    <h2>1. Диапазон числа</h2>
+    <p class="ex-title"><span class="tag">столбец</span> Итоговый балл 0–100</p>
+    <pre><code>CREATE TABLE enrollments (
+    id INTEGER PRIMARY KEY,
+    student_id INTEGER NOT NULL,
+    score INTEGER CHECK (score &gt;= 0 AND score &lt;= 100)
+);</code></pre>
+    <p>Разрешить «ещё не сдано» через NULL (CHECK не срабатывает на NULL):</p>
+    <pre><code>score INTEGER CHECK (score IS NULL OR (score &gt;= 0 AND score &lt;= 100))</code></pre>
+
+    <h2>2. Список допустимых значений</h2>
+    <p class="ex-title"><span class="tag">столбец</span> Статус записи на курс</p>
+    <pre><code>CREATE TABLE enrollments (
+    id INTEGER PRIMARY KEY,
+    status TEXT NOT NULL
+        CHECK (status IN ('active', 'completed', 'dropped'))
+);</code></pre>
+    <div class="ok">Аналог «перечисления» без отдельной таблицы-справочника — удобно в учебных проектах.</div>
+
+    <h2>3. Логическое поле (0 / 1)</h2>
+    <p class="ex-title"><span class="tag">столбец</span> Флаг «курс пройден»</p>
+    <pre><code>CREATE TABLE courses (
+    id INTEGER PRIMARY KEY,
+    title TEXT NOT NULL,
+    is_published INTEGER NOT NULL DEFAULT 0
+        CHECK (is_published IN (0, 1))
+);</code></pre>
+
+    <h2>4. Связь двух столбцов</h2>
+    <p class="ex-title"><span class="tag">таблица</span> Дата окончания не раньше начала</p>
+    <pre><code>CREATE TABLE cohorts (
+    id INTEGER PRIMARY KEY,
+    title TEXT NOT NULL,
+    start_date TEXT NOT NULL,
+    end_date TEXT NOT NULL,
+    CHECK (date(end_date) &gt;= date(start_date))
+);</code></pre>
+    <p>Даты в формате <span class="inline">YYYY-MM-DD</span> — функция <span class="inline">date()</span> сравнивает их корректно.</p>
+
+    <h2>5. Цена и скидка</h2>
+    <p class="ex-title"><span class="tag">таблица</span> Скидка не больше базовой цены</p>
+    <pre><code>CREATE TABLE promotions (
+    id INTEGER PRIMARY KEY,
+    base_price REAL NOT NULL CHECK (base_price &gt; 0),
+    discount REAL NOT NULL DEFAULT 0,
+    CHECK (discount &gt;= 0 AND discount &lt;= base_price)
+);</code></pre>
+
+    <h2>6. Текст: минимальная длина</h2>
+    <p class="ex-title"><span class="tag">столбец</span> Email не пустой и с символом @</p>
+    <pre><code>CREATE TABLE students (
+    id INTEGER PRIMARY KEY,
+    email TEXT NOT NULL
+        CHECK (length(trim(email)) &gt; 0 AND instr(email, '@') &gt; 1)
+);</code></pre>
+    <div class="note">
+      Для production-email лучше проверка в приложении; CHECK — базовая «сетка безопасности» в БД.
+    </div>
+
+    <h2>7. Несколько правил сразу</h2>
+    <p class="ex-title"><span class="tag">комбо</span> Поток: места и запись</p>
+    <pre><code>CREATE TABLE cohorts (
+    id INTEGER PRIMARY KEY,
+    max_seats INTEGER NOT NULL CHECK (max_seats &gt; 0),
+    enrolled_count INTEGER NOT NULL DEFAULT 0,
+    CHECK (enrolled_count &gt;= 0 AND enrolled_count &lt;= max_seats)
+);</code></pre>
+
+    <h2>Что увидите при ошибке</h2>
+    <pre><code>INSERT INTO enrollments (student_id, score) VALUES (1, 150);
+-- Error: CHECK constraint failed</code></pre>
+
+    <h2>Мини-практика (2 минуты)</h2>
+    <ol>
+      <li>Создайте таблицу <span class="inline">reviews</span> с полем <span class="inline">rating</span> (1–5) через CHECK.</li>
+      <li>Вставьте оценку 4 — успех; оценку 0 — ошибка.</li>
+      <li>Добавьте CHECK: комментарий либо NULL, либо не короче 10 символов.</li>
+    </ol>
+    <button type="button" id="toggleSol" style="margin-top:0.5rem;padding:0.45rem 0.9rem;border:none;border-radius:6px;background:#0d6e6e;color:#fff;cursor:pointer;font-size:0.88rem;">Показать решение</button>
+    <pre id="sol" style="display:none;"><code>CREATE TABLE reviews (
+    id INTEGER PRIMARY KEY,
+    rating INTEGER NOT NULL CHECK (rating BETWEEN 1 AND 5),
+    comment TEXT CHECK (
+        comment IS NULL OR length(comment) &gt;= 10
+    )
+);
+
+INSERT INTO reviews (rating, comment) VALUES (4, 'Отличный курс!');
+INSERT INTO reviews (rating) VALUES (5);
+-- INSERT INTO reviews (rating) VALUES (0);  -- CHECK constraint failed</code></pre>
+
+    <footer>
+      SQLite · см. также
+      <a href="sql_capstone.html">итоговый проект SkillPoint</a>,
+      <a href="sql_where_distinct.html">WHERE</a>.
+    </footer>
+  </div>
+  <script>
+    document.getElementById('toggleSol').addEventListener('click', function () {
+      var el = document.getElementById('sol');
+      var show = el.style.display !== 'block';
+      el.style.display = show ? 'block' : 'none';
+      this.textContent = show ? 'Скрыть решение' : 'Показать решение';
+    });
+  </script>
+</body>
+</html>
