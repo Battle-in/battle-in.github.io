@@ -9,7 +9,7 @@ class Client:
         self.balance = balance
 
     def __str__(self):
-        return f'Клиент [имя: f{self.name}, баланс: f{self.balance}'
+        return f'Клиент [имя: {self.name}, баланс: {self.balance}'
 
 if __name__ == '__main__':
     main()
