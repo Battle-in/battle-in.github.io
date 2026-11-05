@@ -24,6 +24,7 @@
 | [sql_sets_subqueries.html](./sql_sets_subqueries.html) | `UNION`, `INTERSECT`, `EXCEPT`, подзапросы, `EXISTS`, `IN`, MAX/MIN (SQLite) | Практика с решениями |
 | [sql_capstone.html](./sql_capstone.html) | Итог: SkillPoint — проектирование БД, индексы, 21 бизнес-отчёт (SQLite) | Самостоятельная работа |
 | [pizza.html](./pizza.html) | Декомпозиция и сложная бизнес-логика (калькулятор доставки) | Задача на программирование |
+| [python_map.html](./python_map.html) | Функция `map`: синтаксис, варианты, итератор | Справка + мини-задания |
 | [oop-practice.html](./oop-practice.html) | ООП в Python: классы, методы, задания | Теория + практика |
 
 ## Рекомендуемый порядок по SQL
@@ -49,7 +50,8 @@
 ## Прочие задания
 
 - **Пицца** — тренировка чтения требований, порядка применения правил, валидации и структуры кода без привязки к конкретной СУБД.
-- **ООП** — работа в Python: классы пишутся в `.py` или Jupyter; на странице — теория, критерии проверки и задания.
+- **map** — [python_map.html](./python_map.html): применение функции к элементам последовательности, lambda, несколько iterable, сравнение с comprehension.
+- **ООП** — [oop-practice.html](./oop-practice.html): классы пишутся в `.py` или Jupyter; на странице — теория, критерии проверки и задания.
 
 ## Инструменты
 
@@ -71,6 +73,7 @@ database_tasks/
 ├── sql_sets_subqueries.html
 ├── sql_capstone.html
 ├── pizza.html
+├── python_map.html
 └── oop-practice.html
 ```
 

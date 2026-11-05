@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Python: функция map</title>
+  <style>
+    :root {
+      --bg: #0f1419;
+      --surface: #1a2332;
+      --surface-2: #243044;
+      --text: #e7ecf3;
+      --muted: #9aa8bc;
+      --accent: #3d9cf0;
+      --accent-soft: rgba(61, 156, 240, 0.15);
+      --success: #3ecf8e;
+      --warning: #f0b429;
+      --border: #2d3a4f;
+      --code-bg: #0d1117;
+      --font: "Segoe UI", system-ui, sans-serif;
+      --mono: "JetBrains Mono", Consolas, monospace;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.65;
+      font-size: 17px;
+    }
+    .hero {
+      background: linear-gradient(135deg, #2d1f4e 0%, var(--bg) 55%);
+      border-bottom: 1px solid var(--border);
+      padding: 2.5rem 1.5rem 2rem;
+    }
+    .wrap { max-width: 820px; margin: 0 auto; padding: 0 1.5rem 4rem; }
+    .hero .wrap { padding-bottom: 0; }
+    .badge {
+      display: inline-block;
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: #c792ea;
+      background: rgba(199, 146, 234, 0.12);
+      padding: 0.35rem 0.75rem;
+      border-radius: 999px;
+      margin-bottom: 1rem;
+    }
+    h1 { font-size: clamp(1.75rem, 4vw, 2.2rem); margin: 0 0 0.75rem; line-height: 1.25; }
+    .lead { color: var(--muted); font-size: 1.05rem; max-width: 38em; margin: 0; }
+    nav.toc {
+      margin: 2rem 0 0;
+      padding: 1.25rem 1.5rem;
+      background: var(--surface);
+      border-radius: 12px;
+      border: 1px solid var(--border);
+    }
+    nav.toc h2 { font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); margin: 0 0 0.75rem; }
+    nav.toc ol { margin: 0; padding-left: 1.25rem; }
+    nav.toc a { color: var(--accent); text-decoration: none; }
+    nav.toc a:hover { text-decoration: underline; }
+    section { margin-top: 2.5rem; }
+    h2 { font-size: 1.4rem; margin: 0 0 1rem; padding-bottom: 0.5rem; border-bottom: 2px solid var(--surface-2); }
+    h3 { font-size: 1.05rem; margin: 1.35rem 0 0.6rem; }
+    p { margin: 0 0 0.85rem; }
+    ul, ol { margin: 0 0 1rem; padding-left: 1.35rem; }
+    li { margin-bottom: 0.35rem; }
+    pre {
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1rem 1.15rem;
+      overflow-x: auto;
+      font-family: var(--mono);
+      font-size: 0.88rem;
+      line-height: 1.55;
+      margin: 0.65rem 0 1rem;
+    }
+    code { font-family: var(--mono); font-size: 0.9em; }
+    p code, li code {
+      background: var(--surface-2);
+      padding: 0.12rem 0.4rem;
+      border-radius: 4px;
+      color: #c792ea;
+    }
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.15rem 1.35rem;
+      margin: 1rem 0;
+    }
+    .card.warn { border-left: 4px solid var(--warning); }
+    .card.tip { border-left: 4px solid var(--success); }
+    .out {
+      font-family: var(--mono);
+      font-size: 0.85rem;
+      color: var(--success);
+      margin: -0.5rem 0 1rem;
+    }
+    .btn {
+      font-family: var(--font);
+      font-size: 0.88rem;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      background: var(--accent);
+      color: #fff;
+      margin: 0.25rem 0 0.75rem;
+    }
+    .btn:hover { filter: brightness(1.08); }
+    .solution { display: none; }
+    .solution.open { display: block; }
+    .compare {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.75rem;
+    }
+    @media (max-width: 640px) { .compare { grid-template-columns: 1fr; } }
+    .compare div {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 0.85rem;
+      font-size: 0.9rem;
+    }
+    .compare h4 { font-size: 0.8rem; color: var(--muted); margin: 0 0 0.5rem; text-transform: uppercase; letter-spacing: 0.04em; }
+  </style>
+</head>
+<body>
+  <header class="hero">
+    <div class="wrap">
+      <span class="badge">Python 3</span>
+      <h1>Функция <code>map</code></h1>
+      <p class="lead">
+        Применяет функцию к каждому элементу последовательности (или к элементам нескольких последовательностей парами).
+        Удобна для преобразования данных без явного цикла <code>for</code>.
+      </p>
+      <nav class="toc" aria-label="Содержание">
+        <h2>Содержание</h2>
+        <ol>
+          <li><a href="#idea">Идея и синтаксис</a></li>
+          <li><a href="#iterator">Объект map и ленивость</a></li>
+          <li><a href="#variants">Варианты использования</a></li>
+          <li><a href="#multi">Несколько iterable</a></li>
+          <li><a href="#vs">map и list comprehension</a></li>
+          <li><a href="#related">Рядом: filter, itertools</a></li>
+          <li><a href="#tasks">Мини-задания</a></li>
+        </ol>
+      </nav>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <section id="idea">
+      <h2>Идея и синтаксис</h2>
+      <pre><code>map(функция, iterable_1, iterable_2, ...)</code></pre>
+      <p>
+        Для каждого элемента (или для каждой «кортежной» группы из нескольких списков) Python вызывает
+        <code>функция(элемент)</code> и отдаёт результат. Функция может быть:
+      </p>
+      <ul>
+        <li>именованная через <code>def</code>;</li>
+        <li><code>lambda</code>;</li>
+        <li>встроенная или метод типа (<code>int</code>, <code>str.strip</code>, <code>str.upper</code>).</li>
+      </ul>
+
+      <h3>Базовый пример</h3>
+      <pre><code>nums = [1, 2, 3, 4]
+squares = map(lambda x: x ** 2, nums)
+print(list(squares))   # [1, 4, 9, 16]</code></pre>
+      <p class="out">→ [1, 4, 9, 16]</p>
+
+      <h3>Именованная функция</h3>
+      <pre><code>def add_ten(x):
+    return x + 10
+
+values = [1, 2, 3]
+print(list(map(add_ten, values)))   # [11, 12, 13]</code></pre>
+    </section>
+
+    <section id="iterator">
+      <h2>Объект map и ленивость</h2>
+      <p>
+        В Python 3 <code>map</code> возвращает <strong>итератор</strong>, а не список. Вычисление идёт по мере перебора
+        (<code>for</code>, <code>list()</code>, <code>next()</code>).
+      </p>
+      <pre><code>it = map(str.upper, ["hi", "sql"])
+print(next(it))   # 'HI'
+print(next(it))   # 'SQL'
+print(list(it))   # [] — элементы кончились</code></pre>
+
+      <div class="card warn">
+        Итератор <code>map</code> <strong>одноразовый</strong>: после полного прохода повторно в список не соберётся.
+        Нужен снова — вызовите <code>map(...)</code> заново.
+      </div>
+
+      <pre><code># Частый паттерн — сразу материализовать:
+result = list(map(int, ["10", "20", "30"]))</code></pre>
+    </section>
+
+    <section id="variants">
+      <h2>Варианты использования</h2>
+
+      <h3>1. Встроенные функции и методы</h3>
+      <pre><code># строки → числа
+prices = ["199", "50", "1200"]
+print(list(map(int, prices)))   # [199, 50, 1200]
+
+# обрезка пробелов
+raw = ["  a", "b  ", " c "]
+print(list(map(str.strip, raw)))   # ['a', 'b', 'c']
+
+# регистр
+print(list(map(str.lower, ["SQL", "Python"])))   # ['sql', 'python']</code></pre>
+
+      <h3>2. Lambda для простого преобразования</h3>
+      <pre><code>temps_c = [0, 20, 36.6]
+temps_f = map(lambda c: c * 9 / 5 + 32, temps_c)
+print(list(temps_f))</code></pre>
+
+      <h3>3. Функция с дополнительной логикой</h3>
+      <pre><code>def grade_label(score):
+    if score >= 90:
+        return "A"
+    if score >= 75:
+        return "B"
+    return "C"
+
+scores = [88, 92, 61]
+print(list(map(grade_label, scores)))   # ['B', 'A', 'C']</code></pre>
+
+      <h3>4. map + zip: работа с парами (альтернатива двум iterable)</h3>
+      <pre><code>names = ["Anna", "Boris"]
+bonuses = [500, 700]
+# через map с двумя списками — см. следующий раздел
+# или явно:
+pairs = list(zip(names, bonuses))
+print(list(map(lambda p: f"{p[0]}: +{p[1]}", pairs)))</code></pre>
+
+      <h3>5. Вызов метода экземпляра (осторожно с аргументами)</h3>
+      <pre><code>lines = ["hello", "world"]
+# метод без аргументов — ок:
+print(list(map(str.capitalize, lines)))   # ['Hello', 'World']
+
+# если нужен аргумент метода — lambda или functools.partial:
+print(list(map(lambda s: s.replace("l", "L"), lines)))</code></pre>
+
+      <h3>6. Объект с __call__ — тоже «функция» для map</h3>
+      <pre><code>class Doubler:
+    def __call__(self, x):
+        return x * 2
+
+print(list(map(Doubler(), [1, 2, 3])))   # [2, 4, 6]</code></pre>
+    </section>
+
+    <section id="multi">
+      <h2>Несколько iterable</h2>
+      <p>
+        Если передать несколько последовательностей, <code>map</code> берёт элементы параллельно — как <code>zip</code>.
+        Останавливается, когда заканчивается <strong>самая короткая</strong>.
+      </p>
+      <pre><code>list(map(pow, [2, 3, 4], [3, 2, 5]))
+# [2**3, 3**2, 4**5]  →  [8, 9, 1024]
+
+list(map(lambda a, b: a + b, [10, 20], [1, 2, 3]))
+# [11, 22]  — третья пара не используется</code></pre>
+
+      <div class="card tip">
+        Для «распаковки» кортежей в функцию с несколькими параметрами удобнее
+        <code>itertools.starmap(func, iterable_of_tuples)</code> — см. ниже.
+      </div>
+    </section>
+
+    <section id="vs">
+      <h2>map и list comprehension</h2>
+      <div class="compare">
+        <div>
+          <h4>map</h4>
+          <p>Функция уже есть или встроенная (<code>int</code>, <code>str.strip</code>). Стиль «конвейер». Ленивый итератор.</p>
+        </div>
+        <div>
+          <h4>[ ... for x in ... ]</h4>
+          <p>Удобнее, когда логика длинная, нужен <code>if</code> внутри или читаемость важнее.</p>
+        </div>
+      </div>
+      <pre><code># Эквиваленты для квадратов:
+list(map(lambda x: x ** 2, nums))
+[x ** 2 for x in nums]
+
+# Только comprehension (с условием):
+[x ** 2 for x in nums if x % 2 == 0]
+# map так не фильтрует — сначала filter, потом map, или одно comprehension</code></pre>
+    </section>
+
+    <section id="related">
+      <h2>Рядом: filter, itertools</h2>
+      <pre><code># filter — отбор, map — преобразование
+nums = [1, 2, 3, 4, 5]
+evens = filter(lambda x: x % 2 == 0, nums)
+doubled = map(lambda x: x * 2, evens)
+print(list(doubled))   # [4, 8]
+
+# starmap — func(a, b) по кортежам
+from itertools import starmap
+points = [(1, 2), (3, 4)]
+print(list(starmap(pow, points)))   # [1, 81]  если pow(1,2), pow(3,4)</code></pre>
+    </section>
+
+    <section id="tasks">
+      <h2>Мини-задания</h2>
+
+      <div class="card">
+        <h3>Задание 1</h3>
+        <p>Из списка строк <code>["1", "2", "three", "4"]</code> получите числа только там, где возможно, через <code>map</code> и обработку ошибок в своей функции (не через try в lambda без def).</p>
+        <button class="btn" type="button" onclick="toggle('s1')">Показать решение</button>
+        <div id="s1" class="solution">
+          <pre><code>def safe_int(s):
+    try:
+        return int(s)
+    except ValueError:
+        return None
+
+data = ["1", "2", "three", "4"]
+print([x for x in map(safe_int, data) if x is not None])   # [1, 2, 4]</code></pre>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Задание 2</h3>
+        <p>Два списка: <code>widths = [10, 20, 5]</code>, <code>heights = [2, 3, 4]</code>. Посчитайте площади прямоугольников через <code>map</code> с двумя iterable.</p>
+        <button class="btn" type="button" onclick="toggle('s2')">Показать решение</button>
+        <div id="s2" class="solution">
+          <pre><code>widths = [10, 20, 5]
+heights = [2, 3, 4]
+print(list(map(lambda w, h: w * h, widths, heights)))   # [20, 60, 20]</code></pre>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Задание 3</h3>
+        <p>Перепишите без <code>map</code> на list comprehension и наоборот — что читается проще для вас?</p>
+        <button class="btn" type="button" onclick="toggle('s3')">Пример</button>
+        <div id="s3" class="solution">
+          <pre><code>words = ["sql", "db", "api"]
+# map:
+upper_map = list(map(str.upper, words))
+# comprehension:
+upper_comp = [w.upper() for w in words]
+# assert upper_map == upper_comp</code></pre>
+        </div>
+      </div>
+    </section>
+
+    <p style="margin-top: 2rem; color: var(--muted); font-size: 0.9rem;">
+      См. также <a href="oop-practice.html" style="color: var(--accent);">ООП в Python</a>.
+      Запускайте примеры в REPL или файле <code>.py</code> через <code>python3</code>.
+    </p>
+  </main>
+
+  <script>
+    function toggle(id) {
+      document.getElementById(id).classList.toggle('open');
+    }
+  </script>
+</body>
+</html>
